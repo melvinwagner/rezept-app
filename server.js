@@ -10,6 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const nodemailer = require("nodemailer");
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
 const USDA_API_URL = "https://api.nal.usda.gov/fdc/v1/foods/search";
 const USDA_API_KEY = process.env.USDA_API_KEY || "";
@@ -674,6 +675,56 @@ app.post("/api/server-keys", (req, res) => {
   if (usda) process.env.USDA_API_KEY = usda;
   if (pexels) process.env.PEXELS_API_KEY = pexels;
   res.json({ success: true });
+});
+
+// Endpoint: LocalSync per E-Mail senden
+app.post("/api/send-sync", async (req, res) => {
+  const { syncData } = req.body;
+  if (!syncData) return res.status(400).json({ error: "Keine Sync-Daten." });
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "sneakerpaul01@gmail.com",
+        pass: "nekwijgaupffjnwk",
+      },
+    });
+
+    const recipeCount = syncData.recipes?.length || 0;
+    const bookCount = syncData.cookbooks?.length || 0;
+    const fileName = `localsync_${new Date().toISOString().slice(0, 10)}.json`;
+
+    await transporter.sendMail({
+      from: "Rezept App <sneakerpaul01@gmail.com>",
+      to: "melvin.wagner97@gmail.com, paul.schlatte@gmail.com",
+      subject: "Rezept App - LocalSync",
+      text:
+        `Rezept App - LocalSync\n\n` +
+        `Stand: ${new Date().toLocaleDateString("de-DE")} | ${recipeCount} Rezepte | ${bookCount} Kategorien\n\n` +
+        `=== Changelog v1.1 ===\n\n` +
+        `- Video zu Rezept: Caption + Untertitel + Audio-Transkription\n` +
+        `- Echte Nährwerte aus USDA FoodData + OpenFoodFacts\n` +
+        `- Makros pro Portion & 100g, Mikronährstoffe, Allergene\n` +
+        `- Editierbare Portionen & Zutatenliste\n` +
+        `- Kochbuch-System mit Kategorien & 2x2 Bildcollage\n` +
+        `- Sterne-Bewertung, Video-Thumbnail als Bild\n` +
+        `- US → metrisch Umrechnung\n` +
+        `- Export/Import/Teilen inkl. aller API Keys\n\n` +
+        `Import: Einstellungen > Passwort (2026) > Importieren`,
+      attachments: [{
+        filename: fileName,
+        content: JSON.stringify(syncData, null, 2),
+        contentType: "application/json",
+      }],
+    });
+
+    console.log("Sync email sent successfully");
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Email send failed:", err.message);
+    res.status(500).json({ error: "E-Mail konnte nicht gesendet werden: " + err.message });
+  }
 });
 
 const PORT = 3001;

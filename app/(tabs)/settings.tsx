@@ -17,6 +17,8 @@ export default function SettingsScreen() {
   const [key, setKey] = useState("");
   const [saved, setSaved] = useState(false);
   const [syncStatus, setSyncStatus] = useState("");
+  const [syncUnlocked, setSyncUnlocked] = useState(false);
+  const [syncPassword, setSyncPassword] = useState("");
 
   useEffect(() => {
     loadKey();
@@ -46,33 +48,35 @@ export default function SettingsScreen() {
     setSaved(false);
   };
 
-  // ===== EXPORT =====
+  const buildSyncData = async () => {
+    const recipesRaw = await AsyncStorage.getItem("saved_recipes");
+    const cookbooksRaw = await AsyncStorage.getItem("cookbooks");
+    const claudeKey = await AsyncStorage.getItem(API_KEY_STORAGE);
+
+    let serverKeys = { groq: "", usda: "", pexels: "" };
+    try {
+      const skRes = await fetch("http://localhost:3001/api/server-keys");
+      if (skRes.ok) serverKeys = await skRes.json();
+    } catch {}
+
+    return {
+      _info: "Rezept App - LocalSync Datei. Importiere diese in den Einstellungen der App.",
+      exportDate: new Date().toISOString(),
+      apiKeys: {
+        claude: claudeKey || "",
+        groq: serverKeys.groq || "",
+        usda: serverKeys.usda || "",
+        pexels: serverKeys.pexels || "",
+      },
+      recipes: recipesRaw ? JSON.parse(recipesRaw) : [],
+      cookbooks: cookbooksRaw ? JSON.parse(cookbooksRaw) : [],
+    };
+  };
+
+  // ===== EXPORT (Download) =====
   const handleExport = async () => {
     try {
-      const recipesRaw = await AsyncStorage.getItem("saved_recipes");
-      const cookbooksRaw = await AsyncStorage.getItem("cookbooks");
-      const claudeKey = await AsyncStorage.getItem(API_KEY_STORAGE);
-
-      // Server-Keys holen
-      let serverKeys = { groq: "", usda: "", pexels: "" };
-      try {
-        const skRes = await fetch("http://localhost:3001/api/server-keys");
-        if (skRes.ok) serverKeys = await skRes.json();
-      } catch {}
-
-      const syncData = {
-        _info: "Rezept App - LocalSync Datei. Importiere diese in den Einstellungen der App.",
-        exportDate: new Date().toISOString(),
-        apiKeys: {
-          claude: claudeKey || "",
-          groq: serverKeys.groq || "",
-          usda: serverKeys.usda || "",
-          pexels: serverKeys.pexels || "",
-        },
-        recipes: recipesRaw ? JSON.parse(recipesRaw) : [],
-        cookbooks: cookbooksRaw ? JSON.parse(cookbooksRaw) : [],
-      };
-
+      const syncData = await buildSyncData();
       const json = JSON.stringify(syncData, null, 2);
 
       if (Platform.OS === "web") {
@@ -87,6 +91,31 @@ export default function SettingsScreen() {
       }
     } catch (err) {
       setSyncStatus("Export fehlgeschlagen.");
+    }
+  };
+
+  // ===== TEILEN (per E-Mail mit Anhang) =====
+  const handleShare = async () => {
+    try {
+      setSyncStatus("E-Mail wird gesendet...");
+      const syncData = await buildSyncData();
+
+      const response = await fetch("http://localhost:3001/api/send-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ syncData }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        setSyncStatus("Fehler: " + (err.error || "Unbekannt"));
+        return;
+      }
+
+      const recipeCount = syncData.recipes?.length || 0;
+      setSyncStatus(`E-Mail mit ${recipeCount} Rezepten an melvin.wagner97@gmail.com & paul.schlatte@gmail.com gesendet!`);
+    } catch (err: any) {
+      setSyncStatus("E-Mail konnte nicht gesendet werden: " + (err.message || "Server nicht erreichbar"));
     }
   };
 
@@ -201,14 +230,45 @@ export default function SettingsScreen() {
           Dein Partner kann diese Datei importieren um den gleichen Stand zu haben.
         </Text>
 
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.exportButton} onPress={handleExport}>
-            <Text style={styles.exportButtonText}>Exportieren</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.importButton} onPress={handleImport}>
-            <Text style={styles.importButtonText}>Importieren</Text>
-          </TouchableOpacity>
-        </View>
+        {!syncUnlocked ? (
+          <View>
+            <TextInput
+              style={styles.input}
+              placeholder="Passwort eingeben..."
+              placeholderTextColor="#aaa"
+              value={syncPassword}
+              onChangeText={setSyncPassword}
+              secureTextEntry
+              onSubmitEditing={() => {
+                if (syncPassword === "2026") setSyncUnlocked(true);
+                else setSyncStatus("Falsches Passwort.");
+              }}
+            />
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={() => {
+                if (syncPassword === "2026") setSyncUnlocked(true);
+                else setSyncStatus("Falsches Passwort.");
+              }}
+            >
+              <Text style={styles.saveButtonText}>Entsperren</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.exportButton} onPress={handleExport}>
+                <Text style={styles.exportButtonText}>Exportieren</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.importButton} onPress={handleImport}>
+                <Text style={styles.importButtonText}>Importieren</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+              <Text style={styles.shareButtonText}>Teilen</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {syncStatus ? (
           <Text style={styles.syncStatus}>{syncStatus}</Text>
@@ -289,6 +349,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   importButtonText: { color: "#fff", fontWeight: "bold", fontSize: 15 },
+  shareButton: {
+    backgroundColor: "#FF6B35",
+    borderRadius: 10,
+    padding: 14,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  shareButtonText: { color: "#fff", fontWeight: "bold", fontSize: 15 },
   syncStatus: {
     marginTop: 12,
     fontSize: 13,
