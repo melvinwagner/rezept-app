@@ -31,7 +31,11 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+
+# LocalSync (enthält API Keys und persönliche Daten)
+localsync.json
 
 # typescript
 *.tsbuildinfo

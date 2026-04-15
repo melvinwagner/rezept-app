@@ -11,12 +11,27 @@ import {
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { getRecipes } from "../../services/storage";
-import { Recipe } from "../../types/recipe";
+import { Recipe, Ingredient, Macros } from "../../types/recipe";
+
+function formatIngredient(ing: Ingredient, scale: number): string {
+  if (ing.amount != null) {
+    let scaled = ing.amount * scale;
+    if (scaled >= 100) scaled = Math.round(scaled / 5) * 5;
+    else if (scaled >= 10) scaled = Math.round(scaled);
+    else scaled = Math.round(scaled * 10) / 10;
+    const amountStr = scaled % 1 === 0 ? scaled.toString() : scaled.toFixed(1);
+    return ing.unit ? `${amountStr} ${ing.unit} ${ing.name}` : `${amountStr} ${ing.name}`;
+  }
+  return ing.name;
+}
 
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentServings, setCurrentServings] = useState(0);
+  const [originalServings, setOriginalServings] = useState(0);
+  const [showMicro, setShowMicro] = useState(false);
 
   useEffect(() => {
     loadRecipe();
@@ -26,12 +41,18 @@ export default function RecipeDetailScreen() {
     const recipes = await getRecipes();
     const found = recipes.find((r) => r.id === id);
     setRecipe(found || null);
+    if (found) {
+      setOriginalServings(found.servings);
+      setCurrentServings(found.servings);
+    }
     setLoading(false);
   };
 
+  const scale = originalServings > 0 ? currentServings / originalServings : 1;
+
   const handleShare = async () => {
     if (!recipe) return;
-    const text = `${recipe.title}\n\nZutaten:\n${recipe.ingredients.map((i) => `• ${i}`).join("\n")}\n\nZubereitung:\n${recipe.steps.map((s, idx) => `${idx + 1}. ${s}`).join("\n")}`;
+    const text = `${recipe.title} (${currentServings} Portionen)\n\nZutaten:\n${recipe.ingredients.map((i) => `• ${formatIngredient(i, scale)}`).join("\n")}\n\nZubereitung:\n${recipe.steps.map((s, idx) => `${idx + 1}. ${s}`).join("\n")}`;
     await Share.share({ message: text });
   };
 
@@ -59,7 +80,25 @@ export default function RecipeDetailScreen() {
       <View style={styles.metaRow}>
         <View style={styles.metaItem}>
           <Text style={styles.metaLabel}>Portionen</Text>
-          <Text style={styles.metaValue}>{recipe.servings}</Text>
+          <View style={styles.servingsRow}>
+            <TouchableOpacity
+              style={styles.servingsButton}
+              onPress={() => currentServings > 1 && setCurrentServings(currentServings - 1)}
+            >
+              <Text style={styles.servingsButtonText}>-</Text>
+            </TouchableOpacity>
+            <Text style={styles.servingsValue}>{currentServings}</Text>
+            <TouchableOpacity
+              style={styles.servingsButton}
+              onPress={() => setCurrentServings(currentServings + 1)}
+            >
+              <Text style={styles.servingsButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.metaItem}>
+          <Text style={styles.metaLabel}>kcal / Portion</Text>
+          <Text style={styles.metaValue}>{recipe.nutritionPerServing?.kcal ?? "-"}</Text>
         </View>
         <View style={styles.metaItem}>
           <Text style={styles.metaLabel}>Vorbereitung</Text>
@@ -73,10 +112,10 @@ export default function RecipeDetailScreen() {
 
       <Text style={styles.sectionTitle}>Zutaten</Text>
       <View style={styles.ingredientsList}>
-        {recipe.ingredients.map((item, i) => (
+        {recipe.ingredients.map((ing, i) => (
           <View key={i} style={styles.ingredientRow}>
             <View style={styles.bullet} />
-            <Text style={styles.ingredientText}>{item}</Text>
+            <Text style={styles.ingredientText}>{formatIngredient(ing, scale)}</Text>
           </View>
         ))}
       </View>
@@ -104,6 +143,63 @@ export default function RecipeDetailScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {recipe.nutritionPerServing && (
+        <View style={styles.nutritionSection}>
+          <Text style={styles.sectionTitle}>Nährwerte</Text>
+
+          <Text style={styles.nutritionSubtitle}>Pro Portion</Text>
+          <View style={styles.nutritionGrid}>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.kcal}</Text><Text style={styles.nutritionLabel}>kcal</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.protein}g</Text><Text style={styles.nutritionLabel}>Protein</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.carbs}g</Text><Text style={styles.nutritionLabel}>Kohlenhydrate</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.fat}g</Text><Text style={styles.nutritionLabel}>Fett</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.fiber}g</Text><Text style={styles.nutritionLabel}>Ballaststoffe</Text></View>
+          </View>
+
+          <Text style={styles.nutritionSubtitle}>Pro 100g</Text>
+          <View style={styles.nutritionGrid}>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.kcal}</Text><Text style={styles.nutritionLabel}>kcal</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.protein}g</Text><Text style={styles.nutritionLabel}>Protein</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.carbs}g</Text><Text style={styles.nutritionLabel}>Kohlenhydrate</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.fat}g</Text><Text style={styles.nutritionLabel}>Fett</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.fiber}g</Text><Text style={styles.nutritionLabel}>Ballaststoffe</Text></View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.microButton}
+            onPress={() => setShowMicro(!showMicro)}
+          >
+            <Text style={styles.microButtonText}>
+              {showMicro ? "Mikronährstoffe ausblenden" : "Mikronährstoffe anzeigen"}
+            </Text>
+          </TouchableOpacity>
+
+          {showMicro && recipe.micronutrients && (
+            <View style={styles.microGrid}>
+              {Object.entries(recipe.micronutrients).map(([name, value]) => (
+                <View key={name} style={styles.microRow}>
+                  <Text style={styles.microName}>{name}</Text>
+                  <Text style={styles.microValue}>{value}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
+
+      {recipe.allergens && recipe.allergens.length > 0 && (
+        <View style={styles.allergenSection}>
+          <Text style={styles.sectionTitle}>Allergene</Text>
+          <View style={styles.allergenRow}>
+            {recipe.allergens.map((a, i) => (
+              <View key={i} style={styles.allergenBadge}>
+                <Text style={styles.allergenText}>{a}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -136,6 +232,17 @@ const styles = StyleSheet.create({
   metaItem: { alignItems: "center", flex: 1 },
   metaLabel: { fontSize: 11, color: "#999", marginBottom: 4 },
   metaValue: { fontSize: 15, fontWeight: "700", color: "#FF6B35" },
+  servingsRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
+  servingsButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#FF6B35",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  servingsButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold", lineHeight: 20 },
+  servingsValue: { fontSize: 18, fontWeight: "bold", color: "#FF6B35", minWidth: 20, textAlign: "center" as any },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
@@ -212,4 +319,56 @@ const styles = StyleSheet.create({
     borderColor: "#FF6B35",
   },
   sourceButtonText: { color: "#FF6B35", fontWeight: "bold", fontSize: 15 },
+  nutritionSection: { marginTop: 24 },
+  nutritionSubtitle: { fontSize: 14, fontWeight: "600", color: "#777", marginBottom: 8, marginTop: 12 },
+  nutritionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 4,
+  },
+  nutritionItem: {
+    backgroundColor: "#FFF3EB",
+    borderRadius: 10,
+    padding: 10,
+    alignItems: "center",
+    minWidth: 80,
+    flex: 1,
+  },
+  nutritionValue: { fontSize: 16, fontWeight: "bold", color: "#FF6B35" },
+  nutritionLabel: { fontSize: 10, color: "#999", marginTop: 2 },
+  microButton: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: 10,
+    padding: 12,
+    alignItems: "center",
+    marginTop: 16,
+  },
+  microButtonText: { fontSize: 14, fontWeight: "600", color: "#666" },
+  microGrid: {
+    backgroundColor: "#FAFAFA",
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 10,
+  },
+  microRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  microName: { fontSize: 14, color: "#555" },
+  microValue: { fontSize: 14, fontWeight: "600", color: "#333" },
+  allergenSection: { marginTop: 20, marginBottom: 20 },
+  allergenRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  allergenBadge: {
+    backgroundColor: "#FDECEA",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: "#F5C6CB",
+  },
+  allergenText: { fontSize: 13, fontWeight: "600", color: "#B71C1C" },
 });

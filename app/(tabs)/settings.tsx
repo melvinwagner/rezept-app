@@ -5,7 +5,8 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
+  Platform,
+  ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setApiKey, getApiKey } from "../../services/api";
@@ -15,6 +16,7 @@ const API_KEY_STORAGE = "claude_api_key";
 export default function SettingsScreen() {
   const [key, setKey] = useState("");
   const [saved, setSaved] = useState(false);
+  const [syncStatus, setSyncStatus] = useState("");
 
   useEffect(() => {
     loadKey();
@@ -31,14 +33,10 @@ export default function SettingsScreen() {
 
   const handleSave = async () => {
     const trimmed = key.trim();
-    if (!trimmed) {
-      Alert.alert("Fehler", "Bitte gib einen API Key ein.");
-      return;
-    }
+    if (!trimmed) return;
     await AsyncStorage.setItem(API_KEY_STORAGE, trimmed);
     setApiKey(trimmed);
     setSaved(true);
-    Alert.alert("Gespeichert!", "Dein API Key wurde gespeichert.");
   };
 
   const handleClear = async () => {
@@ -48,8 +46,93 @@ export default function SettingsScreen() {
     setSaved(false);
   };
 
+  // ===== EXPORT =====
+  const handleExport = async () => {
+    try {
+      const recipesRaw = await AsyncStorage.getItem("saved_recipes");
+      const cookbooksRaw = await AsyncStorage.getItem("cookbooks");
+      const claudeKey = await AsyncStorage.getItem(API_KEY_STORAGE);
+
+      const syncData = {
+        _info: "Rezept App - LocalSync Datei. Importiere diese in den Einstellungen der App.",
+        exportDate: new Date().toISOString(),
+        apiKeys: {
+          claude: claudeKey || "",
+        },
+        recipes: recipesRaw ? JSON.parse(recipesRaw) : [],
+        cookbooks: cookbooksRaw ? JSON.parse(cookbooksRaw) : [],
+      };
+
+      const json = JSON.stringify(syncData, null, 2);
+
+      if (Platform.OS === "web") {
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `localsync_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setSyncStatus("Export erfolgreich heruntergeladen!");
+      }
+    } catch (err) {
+      setSyncStatus("Export fehlgeschlagen.");
+    }
+  };
+
+  // ===== IMPORT =====
+  const handleImport = () => {
+    if (Platform.OS === "web") {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json";
+      input.onchange = async (e: any) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+
+          // API Key importieren
+          if (data.apiKeys?.claude) {
+            await AsyncStorage.setItem(API_KEY_STORAGE, data.apiKeys.claude);
+            setApiKey(data.apiKeys.claude);
+            setKey(data.apiKeys.claude);
+            setSaved(true);
+          }
+
+          // Rezepte importieren (merge mit bestehenden)
+          if (data.recipes && Array.isArray(data.recipes)) {
+            const existingRaw = await AsyncStorage.getItem("saved_recipes");
+            const existing = existingRaw ? JSON.parse(existingRaw) : [];
+            const existingIds = new Set(existing.map((r: any) => r.id));
+            const newRecipes = data.recipes.filter((r: any) => !existingIds.has(r.id));
+            const merged = [...newRecipes, ...existing];
+            await AsyncStorage.setItem("saved_recipes", JSON.stringify(merged));
+          }
+
+          // Kochbücher importieren (merge)
+          if (data.cookbooks && Array.isArray(data.cookbooks)) {
+            const existingRaw = await AsyncStorage.getItem("cookbooks");
+            const existing = existingRaw ? JSON.parse(existingRaw) : [];
+            const merged = [...new Set([...existing, ...data.cookbooks])];
+            await AsyncStorage.setItem("cookbooks", JSON.stringify(merged));
+          }
+
+          const recipeCount = data.recipes?.length || 0;
+          const bookCount = data.cookbooks?.length || 0;
+          setSyncStatus(`Import erfolgreich! ${recipeCount} Rezepte, ${bookCount} Kategorien.`);
+        } catch (err) {
+          setSyncStatus("Import fehlgeschlagen – ungültige Datei.");
+        }
+      };
+      input.click();
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      {/* API Key */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Claude API Key</Text>
         <Text style={styles.cardDesc}>
@@ -85,6 +168,29 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      {/* Sync */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Daten synchronisieren</Text>
+        <Text style={styles.cardDesc}>
+          Exportiere alle Rezepte, Kategorien und Einstellungen als Datei.
+          Dein Partner kann diese Datei importieren um den gleichen Stand zu haben.
+        </Text>
+
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.exportButton} onPress={handleExport}>
+            <Text style={styles.exportButtonText}>Exportieren</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.importButton} onPress={handleImport}>
+            <Text style={styles.importButtonText}>Importieren</Text>
+          </TouchableOpacity>
+        </View>
+
+        {syncStatus ? (
+          <Text style={styles.syncStatus}>{syncStatus}</Text>
+        ) : null}
+      </View>
+
+      {/* Info */}
       <View style={styles.infoCard}>
         <Text style={styles.infoTitle}>So funktioniert's</Text>
         <Text style={styles.infoText}>
@@ -96,12 +202,13 @@ export default function SettingsScreen() {
       </View>
 
       <Text style={styles.version}>Rezept App v1.0.0</Text>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF8F0", padding: 16 },
+  container: { flex: 1, backgroundColor: "#FFF8F0" },
+  scrollContent: { padding: 16, paddingBottom: 40 },
   card: {
     backgroundColor: "#fff",
     borderRadius: 14,
@@ -141,10 +248,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   clearButtonText: { color: "#999", fontWeight: "600", fontSize: 15 },
+  exportButton: {
+    backgroundColor: "#4CAF50",
+    borderRadius: 10,
+    padding: 14,
+    flex: 1,
+    alignItems: "center",
+  },
+  exportButtonText: { color: "#fff", fontWeight: "bold", fontSize: 15 },
+  importButton: {
+    backgroundColor: "#1E88E5",
+    borderRadius: 10,
+    padding: 14,
+    flex: 1,
+    alignItems: "center",
+  },
+  importButtonText: { color: "#fff", fontWeight: "bold", fontSize: 15 },
+  syncStatus: {
+    marginTop: 12,
+    fontSize: 13,
+    color: "#4CAF50",
+    fontWeight: "600",
+  },
   infoCard: {
     backgroundColor: "#fff",
     borderRadius: 14,
     padding: 20,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -157,6 +287,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#ccc",
     fontSize: 12,
-    marginTop: 24,
+    marginTop: 8,
   },
 });

@@ -30,7 +30,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="saved"
         options={{
-          title: "Gespeichert",
+          title: "Kochbuch",
           tabBarIcon: ({ color }) => (
             <Text style={{ fontSize: 22, color }}>&#9733;</Text>
           ),

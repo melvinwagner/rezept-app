@@ -1,12 +1,10 @@
 import { Platform } from "react-native";
-import { Recipe } from "../types/recipe";
+import { Recipe, Ingredient, Macros } from "../types/recipe";
 
-const PROXY_URL = Platform.OS === "web"
-  ? "http://localhost:3001/api/generate-recipe"
-  : "http://localhost:3001/api/generate-recipe";
+const BASE_URL = "http://localhost:3001";
+const PROXY_URL = `${BASE_URL}/api/generate-recipe`;
 
 let API_KEY = "";
-
 export function setApiKey(key: string) {
   API_KEY = key;
 }
@@ -42,7 +40,31 @@ export async function generateRecipe(videoUrl: string): Promise<Recipe> {
     cookTime: parsed.cookTime,
     ingredients: parsed.ingredients,
     steps: parsed.steps,
+    nutritionPerServing: parsed.nutritionPerServing,
+    nutritionPer100g: parsed.nutritionPer100g,
+    micronutrients: parsed.micronutrients || {},
+    allergens: parsed.allergens || [],
+    thumbnail: parsed.thumbnail || undefined,
+    imageUrl: parsed.imageUrl || undefined,
     sourceUrl: videoUrl,
     createdAt: new Date().toISOString(),
   };
+}
+
+export async function recalculateNutrition(ingredients: Ingredient[], servings: number): Promise<{
+  nutritionPerServing: Macros;
+  nutritionPer100g: Macros;
+  micronutrients: Record<string, string>;
+}> {
+  const response = await fetch(`${BASE_URL}/api/recalculate-nutrition`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ingredients, servings }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Nährwert-Berechnung fehlgeschlagen");
+  }
+
+  return response.json();
 }
