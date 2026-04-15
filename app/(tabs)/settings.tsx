@@ -53,11 +53,21 @@ export default function SettingsScreen() {
       const cookbooksRaw = await AsyncStorage.getItem("cookbooks");
       const claudeKey = await AsyncStorage.getItem(API_KEY_STORAGE);
 
+      // Server-Keys holen
+      let serverKeys = { groq: "", usda: "", pexels: "" };
+      try {
+        const skRes = await fetch("http://localhost:3001/api/server-keys");
+        if (skRes.ok) serverKeys = await skRes.json();
+      } catch {}
+
       const syncData = {
         _info: "Rezept App - LocalSync Datei. Importiere diese in den Einstellungen der App.",
         exportDate: new Date().toISOString(),
         apiKeys: {
           claude: claudeKey || "",
+          groq: serverKeys.groq || "",
+          usda: serverKeys.usda || "",
+          pexels: serverKeys.pexels || "",
         },
         recipes: recipesRaw ? JSON.parse(recipesRaw) : [],
         cookbooks: cookbooksRaw ? JSON.parse(cookbooksRaw) : [],
@@ -119,9 +129,24 @@ export default function SettingsScreen() {
             await AsyncStorage.setItem("cookbooks", JSON.stringify(merged));
           }
 
+          // Server-Keys importieren (.env schreiben)
+          if (data.apiKeys?.groq || data.apiKeys?.usda || data.apiKeys?.pexels) {
+            try {
+              await fetch("http://localhost:3001/api/server-keys", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  groq: data.apiKeys.groq || "",
+                  usda: data.apiKeys.usda || "",
+                  pexels: data.apiKeys.pexels || "",
+                }),
+              });
+            } catch {}
+          }
+
           const recipeCount = data.recipes?.length || 0;
           const bookCount = data.cookbooks?.length || 0;
-          setSyncStatus(`Import erfolgreich! ${recipeCount} Rezepte, ${bookCount} Kategorien.`);
+          setSyncStatus(`Import erfolgreich! ${recipeCount} Rezepte, ${bookCount} Kategorien, alle API Keys übernommen.`);
         } catch (err) {
           setSyncStatus("Import fehlgeschlagen – ungültige Datei.");
         }

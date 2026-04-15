@@ -655,6 +655,27 @@ app.post("/api/recalculate-nutrition", async (req, res) => {
   }
 });
 
+// Endpoint: Server-Keys exportieren
+app.get("/api/server-keys", (req, res) => {
+  res.json({
+    groq: GROQ_API_KEY,
+    usda: USDA_API_KEY,
+    pexels: PEXELS_API_KEY,
+  });
+});
+
+// Endpoint: Server-Keys importieren (schreibt .env)
+app.post("/api/server-keys", (req, res) => {
+  const { groq, usda, pexels } = req.body;
+  const envContent = `GROQ_API_KEY=${groq || ""}\nUSDA_API_KEY=${usda || ""}\nPEXELS_API_KEY=${pexels || ""}\n`;
+  fs.writeFileSync(path.join(__dirname, ".env"), envContent);
+  // Auch zur Laufzeit setzen
+  if (groq) process.env.GROQ_API_KEY = groq;
+  if (usda) process.env.USDA_API_KEY = usda;
+  if (pexels) process.env.PEXELS_API_KEY = pexels;
+  res.json({ success: true });
+});
+
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Recipe API server running on http://localhost:${PORT}`);
