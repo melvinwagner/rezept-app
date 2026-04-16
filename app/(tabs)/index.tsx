@@ -30,7 +30,7 @@ function UnitPicker({ value, onChange }: { value: string | null; onChange: (v: s
             paddingHorizontal: 10,
             paddingVertical: 8,
             borderRadius: 8,
-            backgroundColor: value === unit ? "#FF6B35" : "#f0f0f0",
+            backgroundColor: value === unit ? "#7BAA6E" : "#E2EBD8",
             cursor: "pointer" as any,
           }}
           onPress={() => onChange(unit)}
@@ -38,7 +38,7 @@ function UnitPicker({ value, onChange }: { value: string | null; onChange: (v: s
           <Text style={{
             fontSize: 13,
             fontWeight: "bold",
-            color: value === unit ? "#fff" : "#666",
+            color: value === unit ? "#fff" : "#6E8868",
           }}>{unit}</Text>
         </Pressable>
       ))}
@@ -196,41 +196,45 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.header}>
-          <Image source={require("../../assets/hero.png")} style={styles.heroImage} />
-          <Text style={styles.title}>Video zu Rezept</Text>
-          <Text style={styles.subtitle}>
-            Füge einen TikTok oder Instagram Link ein und erhalte ein
-            übersichtliches Rezept.
-          </Text>
-        </View>
+        {!recipe && (
+          <>
+            <View style={styles.header}>
+              <Image source={require("../../assets/hero.png")} style={styles.heroImage} />
+              <Text style={styles.title}>Video zu Rezept</Text>
+              <Text style={styles.subtitle}>
+                Füge einen TikTok oder Instagram Link ein und erhalte ein
+                übersichtliches Rezept.
+              </Text>
+            </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="https://www.tiktok.com/..."
-            placeholderTextColor="#aaa"
-            value={url}
-            onChangeText={setUrl}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-          />
-          <Pressable
-            role="button"
-            style={[
-              styles.button,
-              loading && styles.buttonDisabled,
-            ]}
-            onPress={handleGenerate}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Rezept erstellen</Text>
-            )}
-          </Pressable>
-        </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="https://www.tiktok.com/..."
+                placeholderTextColor="#A8B8A2"
+                value={url}
+                onChangeText={setUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+              />
+              <Pressable
+                role="button"
+                style={[
+                  styles.button,
+                  loading && styles.buttonDisabled,
+                ]}
+                onPress={handleGenerate}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Rezept erstellen</Text>
+                )}
+              </Pressable>
+            </View>
+          </>
+        )}
 
         {error ? (
           <View style={styles.errorBox}>
@@ -244,7 +248,7 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        {recipe && (
+        {recipe ? (
           <View style={styles.previewCard}>
             <View style={styles.recipeHeader}>
               <View style={styles.recipeImageCol}>
@@ -261,14 +265,13 @@ export default function HomeScreen() {
                     onPress={() => recipe.creatorUrl && Linking.openURL(recipe.creatorUrl)}
                   >
                     <Text style={styles.creatorPlatform}>{recipe.creatorPlatform}</Text>
-                    <Text style={styles.creatorSeparator}> | </Text>
                     <Text style={styles.creatorHandle}>{recipe.creatorHandle}</Text>
                   </Pressable>
                 )}
               </View>
               <View style={styles.recipeHeaderText}>
                 <Text style={styles.recipeTitle}>{recipe.title}</Text>
-                <Text style={styles.recipeDesc} numberOfLines={3}>{recipe.description}</Text>
+                <Text style={styles.recipeDesc}>{recipe.description}</Text>
               </View>
             </View>
 
@@ -308,7 +311,7 @@ export default function HomeScreen() {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Zutaten</Text>
               <Pressable onPress={() => setEditMode(!editMode)} style={styles.editButton}>
-                <Text style={styles.editButtonText}>{editMode ? "Fertig" : "Bearbeiten"}</Text>
+                <Text style={styles.editButtonText}>{editMode ? "✓" : "✎"}</Text>
               </Pressable>
             </View>
 
@@ -322,7 +325,7 @@ export default function HomeScreen() {
                       onChangeText={(v) => handleUpdateIngredient(i, "amount", v)}
                       keyboardType="numeric"
                       placeholder="-"
-                      placeholderTextColor="#ccc"
+                      placeholderTextColor="#C2D0BC"
                     />
                     <Text style={styles.editUnitLabel}>{ing.unit || ""}</Text>
                     <Text style={styles.editNameLabel} numberOfLines={1}>{ing.name}</Text>
@@ -342,7 +345,7 @@ export default function HomeScreen() {
                       onChangeText={setNewIngAmount}
                       keyboardType="numeric"
                       placeholder="100"
-                      placeholderTextColor="#ccc"
+                      placeholderTextColor="#C2D0BC"
                     />
                     <UnitPicker
                       value={newIngUnit || null}
@@ -353,7 +356,7 @@ export default function HomeScreen() {
                       value={newIngName}
                       onChangeText={setNewIngName}
                       placeholder="z.B. Shrimps"
-                      placeholderTextColor="#ccc"
+                      placeholderTextColor="#C2D0BC"
                     />
                     <Pressable onPress={handleAddIngredient} style={styles.addButton}>
                       <Text style={styles.addButtonText}>+</Text>
@@ -407,7 +410,7 @@ export default function HomeScreen() {
               style={[styles.saveButton]}
               onPress={handleSavePress}
             >
-              <Text style={styles.saveButtonText}>Rezept speichern ★</Text>
+              <Text style={styles.saveButtonText}>Rezept speichern</Text>
             </Pressable>
 
             {showCookbookPicker && (
@@ -430,7 +433,7 @@ export default function HomeScreen() {
                     value={newCookbookName}
                     onChangeText={setNewCookbookName}
                     placeholder="Neues Kochbuch..."
-                    placeholderTextColor="#aaa"
+                    placeholderTextColor="#A8B8A2"
                   />
                   <Pressable style={styles.newCookbookButton} onPress={handleCreateCookbook}>
                     <Text style={styles.newCookbookButtonText}>+</Text>
@@ -447,18 +450,18 @@ export default function HomeScreen() {
                 <View style={styles.nutritionGrid}>
                   <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.kcal}</Text><Text style={styles.nutritionLabel}>kcal</Text></View>
                   <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.protein}g</Text><Text style={styles.nutritionLabel}>Protein</Text></View>
-                  <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.carbs}g</Text><Text style={styles.nutritionLabel}>Kohlenhydrate</Text></View>
+                  <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.carbs}g</Text><Text style={styles.nutritionLabel}>Carbs</Text></View>
                   <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.fat}g</Text><Text style={styles.nutritionLabel}>Fett</Text></View>
-                  <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.fiber}g</Text><Text style={styles.nutritionLabel}>Ballaststoffe</Text></View>
+                  <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.fiber}g</Text><Text style={styles.nutritionLabel}>Ballast.</Text></View>
                 </View>
 
                 <Text style={styles.nutritionSubtitle}>Pro 100g</Text>
                 <View style={styles.nutritionGrid}>
                   <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.kcal}</Text><Text style={styles.nutritionLabel}>kcal</Text></View>
                   <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.protein}g</Text><Text style={styles.nutritionLabel}>Protein</Text></View>
-                  <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.carbs}g</Text><Text style={styles.nutritionLabel}>Kohlenhydrate</Text></View>
+                  <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.carbs}g</Text><Text style={styles.nutritionLabel}>Carbs</Text></View>
                   <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.fat}g</Text><Text style={styles.nutritionLabel}>Fett</Text></View>
-                  <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.fiber}g</Text><Text style={styles.nutritionLabel}>Ballaststoffe</Text></View>
+                  <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.fiber}g</Text><Text style={styles.nutritionLabel}>Ballast.</Text></View>
                 </View>
 
                 <Pressable
@@ -495,354 +498,188 @@ export default function HomeScreen() {
                 </View>
               </View>
             )}
+
+            <Pressable
+              style={styles.newRecipeButton}
+              onPress={() => { setRecipe(null); setUrl(""); setSuccess(""); setError(""); }}
+            >
+              <Text style={styles.newRecipeButtonText}>+ Neues Rezept</Text>
+            </Pressable>
           </View>
-        )}
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
+const G = "rgba(42, 56, 37, 0.55)"; // glass dark (same as tab bar)
+const W = (a: number) => `rgba(255,255,255,${a})`;
+const M = (a: number) => `rgba(123,170,110,${a})`;
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF8F0" },
-  scrollContent: { padding: 20, paddingBottom: 40 },
-  header: { alignItems: "center", marginBottom: 24 },
-  heroImage: { width: 100, height: 100, borderRadius: 50, marginBottom: 12 },
-  title: { fontSize: 28, fontWeight: "bold", color: "#333" },
-  subtitle: {
-    fontSize: 14,
-    color: "#777",
-    textAlign: "center",
-    marginTop: 8,
-    lineHeight: 20,
-  },
+  // === BASE ===
+  container: { flex: 1, backgroundColor: "#EEF2EA" },
+  scrollContent: { padding: 16, paddingBottom: 110 },
+
+  // === LANDING ===
+  header: { alignItems: "center", marginBottom: 28, marginTop: 8 },
+  heroImage: { width: 90, height: 90, borderRadius: 45, marginBottom: 14, borderWidth: 2, borderColor: W(0.6) },
+  title: { fontSize: 26, fontWeight: "700", color: "#2A3825", letterSpacing: -0.5 },
+  subtitle: { fontSize: 13, color: "#8A9E82", textAlign: "center", marginTop: 6, lineHeight: 19, paddingHorizontal: 20 },
+
+  // === INPUT ===
   inputContainer: { marginBottom: 20 },
   input: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    marginBottom: 12,
-  },
+    backgroundColor: W(0.65), borderRadius: 18, padding: 16, fontSize: 15,
+    borderWidth: 0.5, borderColor: W(0.8), marginBottom: 12,
+    backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+  } as any,
   button: {
-    backgroundColor: "#FF6B35",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
+    backgroundColor: G, borderRadius: 18, padding: 15, alignItems: "center",
     cursor: "pointer" as any,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  errorBox: {
-    backgroundColor: "#FDECEA",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#F5C6CB",
-  },
-  errorText: { color: "#B71C1C", fontSize: 14 },
-  successBox: {
-    backgroundColor: "#E8F5E9",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#C8E6C9",
-  },
-  successText: { color: "#2E7D32", fontSize: 14 },
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+    boxShadow: "0 4px 20px rgba(42,56,37,0.2)",
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
+  } as any,
+  buttonDisabled: { opacity: 0.5 },
+  buttonText: { color: "#fff", fontSize: 15, fontWeight: "600", letterSpacing: 0.3 },
+
+  // === ALERTS ===
+  errorBox: { backgroundColor: "rgba(155,68,68,0.07)", borderRadius: 16, padding: 14, marginBottom: 16, borderWidth: 0.5, borderColor: "rgba(155,68,68,0.12)" },
+  errorText: { color: "#9B4444", fontSize: 13 },
+  successBox: { backgroundColor: M(0.08), borderRadius: 16, padding: 14, marginBottom: 16, borderWidth: 0.5, borderColor: M(0.12) },
+  successText: { color: "#4A8A3E", fontSize: 13 },
+
+  // === RECIPE CARD ===
   previewCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)" as any,
+    backgroundColor: W(0.6), borderRadius: 24, padding: 20,
+    borderWidth: 0.5, borderColor: W(0.8),
+    boxShadow: "0 8px 32px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)",
+    backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+    overflow: "hidden" as any,
+  } as any,
+
+  // === RECIPE HEADER ===
+  recipeHeader: { flexDirection: "row", marginBottom: 18, gap: 14, alignItems: "flex-start" as any },
+  recipeImageCol: { alignItems: "center" as any, flexShrink: 0 },
+  recipeImage: { width: 100, height: 120, borderRadius: 16 },
+  recipeHeaderText: { flex: 1, justifyContent: "flex-start" as any, paddingTop: 2 },
+  creatorBadge: {
+    alignItems: "center", backgroundColor: G, borderRadius: 8,
+    paddingHorizontal: 8, paddingVertical: 4, marginTop: 8, width: 100,
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.1)",
+  },
+  creatorPlatform: { fontSize: 8, fontWeight: "500" as any, color: "rgba(255,255,255,0.5)", marginBottom: 1, textAlign: "center" as any },
+  creatorHandle: { fontSize: 8, fontWeight: "600" as any, color: "rgba(255,255,255,0.85)", textAlign: "center" as any },
+  recipeTitle: { fontSize: 19, fontWeight: "700" as any, color: "#2A3825", lineHeight: 25, marginBottom: 5, letterSpacing: -0.3 },
+  recipeDesc: { fontSize: 12.5, color: "#6E8868", lineHeight: 18 },
+
+  // === META ROW ===
+  metaRow: {
+    flexDirection: "row", justifyContent: "space-between",
+    backgroundColor: G, borderRadius: 16, padding: 12, marginBottom: 22,
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+  } as any,
+  metaItem: { alignItems: "center", flex: 1, paddingHorizontal: 2 },
+  metaLabel: { fontSize: 9, color: "rgba(255,255,255,0.45)", marginBottom: 3, textAlign: "center" as any, letterSpacing: 0.3 },
+  metaValue: { fontSize: 13, fontWeight: "600", color: "rgba(255,255,255,0.9)", textAlign: "center" as any },
+  servingsRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  servingsButton: {
+    width: 16, height: 16, borderRadius: 8,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.2)",
+    alignItems: "center", justifyContent: "center", cursor: "pointer" as any,
+  },
+  servingsButtonText: { color: "rgba(255,255,255,0.9)", fontSize: 10, fontWeight: "600", lineHeight: 12, textAlign: "center" as any },
+  servingsValue: { fontSize: 13, fontWeight: "700", color: "rgba(255,255,255,0.9)", minWidth: 12, textAlign: "center" as any },
+
+  // === SECTIONS ===
+  sectionTitle: { fontSize: 17, fontWeight: "700", color: "#2A3825", marginBottom: 12, marginTop: 10, letterSpacing: -0.2 },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12, marginTop: 10 },
+
+  // === INGREDIENTS ===
+  ingredient: { fontSize: 14, color: "#2A3825", marginBottom: 7, lineHeight: 21, paddingLeft: 2 },
+
+  // === STEPS ===
+  stepRow: {
+    flexDirection: "row", marginBottom: 10, alignItems: "flex-start",
+    backgroundColor: W(0.35), borderRadius: 14, padding: 12,
+    borderWidth: 0.5, borderColor: W(0.5),
+  },
+  stepNumber: {
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: G, color: "#fff", textAlign: "center",
+    lineHeight: 24, fontSize: 12, fontWeight: "600", marginRight: 12,
     overflow: "hidden" as any,
   },
-  recipeHeader: {
-    flexDirection: "row",
-    marginBottom: 16,
-    gap: 14,
-  },
-  recipeImageCol: {
-    alignItems: "center" as any,
-  },
-  recipeImage: {
-    width: 100,
-    height: 120,
-    borderRadius: 10,
-  },
-  recipeHeaderText: {
-    flex: 1,
-    justifyContent: "center" as any,
-  },
-  creatorBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF3EB",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginTop: 4,
-  },
-  creatorPlatform: { fontSize: 11, fontWeight: "600" as any, color: "#999" },
-  creatorSeparator: { fontSize: 11, color: "#ccc" },
-  creatorHandle: { fontSize: 11, fontWeight: "700" as any, color: "#FF6B35" },
-  recipeTitle: { fontSize: 24, fontWeight: "bold" as any, color: "#333" },
-  recipeDesc: { fontSize: 14, color: "#666", marginBottom: 16, lineHeight: 20 },
-  metaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "#FFF3EB",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 20,
-  },
-  metaItem: { alignItems: "center", flex: 1 },
-  metaLabel: { fontSize: 11, color: "#999", marginBottom: 4 },
-  metaValue: { fontSize: 14, fontWeight: "600", color: "#FF6B35" },
-  servingsRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
-  servingsButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#FF6B35",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer" as any,
-  },
-  servingsButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold", lineHeight: 20 },
-  servingsValue: { fontSize: 18, fontWeight: "bold", color: "#FF6B35", minWidth: 20, textAlign: "center" as any },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 12,
-    marginTop: 8,
-  },
-  ingredient: { fontSize: 15, color: "#555", marginBottom: 6, lineHeight: 22 },
-  stepRow: { flexDirection: "row", marginBottom: 12 },
-  stepNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#FF6B35",
-    color: "#fff",
-    textAlign: "center",
-    lineHeight: 28,
-    fontSize: 14,
-    fontWeight: "bold",
-    marginRight: 12,
-  },
-  stepText: { flex: 1, fontSize: 15, color: "#555", lineHeight: 22 },
+  stepText: { flex: 1, fontSize: 14, color: "#2A3825", lineHeight: 21 },
+
+  // === SAVE ===
   saveButton: {
-    backgroundColor: "#4CAF50",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    marginTop: 20,
-    cursor: "pointer" as any,
-  },
-  saveButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-    marginTop: 8,
-  },
-  editButton: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    cursor: "pointer" as any,
-  },
-  editButtonText: { fontSize: 13, fontWeight: "600", color: "#666" },
-  editRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-    gap: 6,
-  },
-  editAmount: {
-    width: 50,
-    backgroundColor: "#f8f8f8",
-    borderRadius: 8,
-    padding: 8,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: "#eee",
-    textAlign: "center" as any,
-  },
-  editUnit: {
-    width: 45,
-    backgroundColor: "#f8f8f8",
-    borderRadius: 8,
-    padding: 8,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: "#eee",
-    textAlign: "center" as any,
-  },
-  editUnitLabel: {
-    width: 30,
-    fontSize: 14,
-    color: "#999",
-    textAlign: "center" as any,
-  },
-  editNameLabel: {
-    flex: 1,
-    fontSize: 14,
-    color: "#333",
-  },
-  editName: {
-    flex: 1,
-    backgroundColor: "#f8f8f8",
-    borderRadius: 8,
-    padding: 8,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  addSection: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
-  addLabel: { fontSize: 14, fontWeight: "600", color: "#333", marginBottom: 4 },
-  addWarning: { fontSize: 11, color: "#B71C1C", marginBottom: 10, lineHeight: 16 },
-  deleteButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#FDECEA",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer" as any,
-  },
-  deleteButtonText: { color: "#B71C1C", fontWeight: "bold", fontSize: 13 },
-  addRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    gap: 6,
-    marginTop: 4,
-  },
-  addButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#E8F5E9",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer" as any,
-  },
-  addButtonText: { color: "#2E7D32", fontWeight: "bold", fontSize: 18, lineHeight: 20 },
-  recalcButton: {
-    backgroundColor: "#FF6B35",
-    borderRadius: 10,
-    padding: 12,
-    alignItems: "center",
-    marginTop: 8,
-    marginBottom: 8,
-    cursor: "pointer" as any,
-  },
-  recalcButtonText: { color: "#fff", fontWeight: "bold", fontSize: 14 },
-  cookbookPicker: {
-    backgroundColor: "#f9f9f9",
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  cookbookPickerTitle: { fontSize: 15, fontWeight: "bold", color: "#333", marginBottom: 12 },
-  cookbookOption: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#eee",
-    cursor: "pointer" as any,
-  },
-  cookbookOptionText: { fontSize: 15, color: "#333" },
-  newCookbookRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 4,
-  },
-  newCookbookInput: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  newCookbookButton: {
-    width: 44,
-    backgroundColor: "#FF6B35",
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer" as any,
-  },
-  newCookbookButtonText: { color: "#fff", fontSize: 22, fontWeight: "bold" },
+    backgroundColor: G, borderRadius: 18, padding: 16, alignItems: "center",
+    marginTop: 22, cursor: "pointer" as any,
+    boxShadow: "0 6px 24px rgba(42,56,37,0.18)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+  } as any,
+  saveButtonText: { color: "#fff", fontSize: 15, fontWeight: "600", letterSpacing: 0.3 },
+
+  // === EDIT MODE ===
+  editButton: { width: 32, height: 32, borderRadius: 16, backgroundColor: "transparent", alignItems: "center", justifyContent: "center", cursor: "pointer" as any },
+  editButtonText: { fontSize: 18, color: "#7BAA6E" },
+  editRow: { flexDirection: "row", alignItems: "center", marginBottom: 8, gap: 6 },
+  editAmount: { width: 50, backgroundColor: W(0.55), borderRadius: 10, padding: 8, fontSize: 13, borderWidth: 0.5, borderColor: W(0.7), textAlign: "center" as any },
+  editUnit: { width: 45, backgroundColor: W(0.55), borderRadius: 10, padding: 8, fontSize: 13, borderWidth: 0.5, borderColor: W(0.7), textAlign: "center" as any },
+  editUnitLabel: { width: 30, fontSize: 13, color: "#98AE92", textAlign: "center" as any },
+  editNameLabel: { flex: 1, fontSize: 13, color: "#2A3825" },
+  editName: { flex: 1, backgroundColor: W(0.55), borderRadius: 10, padding: 8, fontSize: 13, borderWidth: 0.5, borderColor: W(0.7) },
+  addSection: { marginTop: 14, paddingTop: 14, borderTopWidth: 0.5, borderTopColor: M(0.1) },
+  addLabel: { fontSize: 13, fontWeight: "600", color: "#2A3825", marginBottom: 4 },
+  addWarning: { fontSize: 10, color: "#9B4444", marginBottom: 10, lineHeight: 15 },
+  deleteButton: { width: 26, height: 26, borderRadius: 13, backgroundColor: "rgba(155,68,68,0.07)", borderWidth: 0.5, borderColor: "rgba(155,68,68,0.12)", alignItems: "center", justifyContent: "center", cursor: "pointer" as any },
+  deleteButtonText: { color: "#9B4444", fontWeight: "600", fontSize: 11 },
+  addRow: { flexDirection: "row", alignItems: "center", marginBottom: 12, gap: 6, marginTop: 4 },
+  addButton: { width: 26, height: 26, borderRadius: 13, backgroundColor: M(0.08), borderWidth: 0.5, borderColor: M(0.15), alignItems: "center", justifyContent: "center", cursor: "pointer" as any },
+  addButtonText: { color: "#5A9A4E", fontWeight: "600", fontSize: 15, lineHeight: 17 },
+  recalcButton: { backgroundColor: G, borderRadius: 14, padding: 12, alignItems: "center", marginTop: 8, marginBottom: 8, cursor: "pointer" as any, boxShadow: "0 2px 10px rgba(42,56,37,0.15)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)" } as any,
+  recalcButtonText: { color: "#fff", fontWeight: "600", fontSize: 13 },
+
+  // === COOKBOOK PICKER ===
+  cookbookPicker: { backgroundColor: W(0.45), borderRadius: 18, padding: 16, marginTop: 14, borderWidth: 0.5, borderColor: W(0.65), backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" } as any,
+  cookbookPickerTitle: { fontSize: 15, fontWeight: "600", color: "#2A3825", marginBottom: 12 },
+  cookbookOption: { backgroundColor: W(0.55), borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 0.5, borderColor: W(0.7), cursor: "pointer" as any },
+  cookbookOptionText: { fontSize: 14, color: "#2A3825" },
+  newCookbookRow: { flexDirection: "row", gap: 8, marginTop: 4 },
+  newCookbookInput: { flex: 1, backgroundColor: W(0.55), borderRadius: 14, padding: 12, fontSize: 13, borderWidth: 0.5, borderColor: W(0.7) },
+  newCookbookButton: { width: 44, backgroundColor: G, borderRadius: 14, alignItems: "center", justifyContent: "center", cursor: "pointer" as any, borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)" },
+  newCookbookButtonText: { color: "#fff", fontSize: 18, fontWeight: "600" },
+
+  // === NUTRITION ===
   nutritionSection: { marginTop: 24 },
-  nutritionSubtitle: { fontSize: 14, fontWeight: "600", color: "#777", marginBottom: 8, marginTop: 12 },
-  nutritionGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 4,
-  },
-  nutritionItem: {
-    backgroundColor: "#FFF3EB",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
-    minWidth: 80,
-    flex: 1,
-  },
-  nutritionValue: { fontSize: 16, fontWeight: "bold", color: "#FF6B35" },
-  nutritionLabel: { fontSize: 10, color: "#999", marginTop: 2 },
-  microButton: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 10,
-    padding: 12,
-    alignItems: "center",
-    marginTop: 16,
+  nutritionSubtitle: { fontSize: 13, fontWeight: "600", color: "#8A9E82", marginBottom: 8, marginTop: 12, letterSpacing: 0.3, textTransform: "uppercase" as any },
+  nutritionGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 4 },
+  nutritionItem: { backgroundColor: W(0.4), borderRadius: 14, paddingVertical: 10, paddingHorizontal: 6, alignItems: "center", minWidth: 58, flex: 1, borderWidth: 0.5, borderColor: W(0.6) },
+  nutritionValue: { fontSize: 15, fontWeight: "700", color: "#5A9A4E" },
+  nutritionLabel: { fontSize: 9, color: "#98AE92", marginTop: 2, textAlign: "center" as any },
+  microButton: { backgroundColor: W(0.35), borderRadius: 14, padding: 12, alignItems: "center", marginTop: 16, cursor: "pointer" as any, borderWidth: 0.5, borderColor: W(0.5) },
+  microButtonText: { fontSize: 13, fontWeight: "600", color: "#6E8868" },
+  microGrid: { backgroundColor: W(0.35), borderRadius: 14, padding: 12, marginTop: 10, borderWidth: 0.5, borderColor: W(0.5) },
+  microRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: M(0.06) },
+  microName: { fontSize: 13, color: "#6E8868" },
+  microValue: { fontSize: 13, fontWeight: "600", color: "#2A3825" },
+
+  // === ALLERGENS ===
+  allergenSection: { marginTop: 20 },
+  allergenRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  allergenBadge: { backgroundColor: "rgba(155,68,68,0.06)", borderRadius: 10, paddingHorizontal: 11, paddingVertical: 5, borderWidth: 0.5, borderColor: "rgba(155,68,68,0.1)" },
+  allergenText: { fontSize: 12, fontWeight: "600", color: "#9B4444" },
+
+  // === NEW RECIPE BUTTON ===
+  newRecipeButton: {
+    borderRadius: 18, padding: 15, alignItems: "center", marginTop: 22,
+    backgroundColor: W(0.4), borderWidth: 0.5, borderColor: W(0.6),
     cursor: "pointer" as any,
   },
-  microButtonText: { fontSize: 14, fontWeight: "600", color: "#666" },
-  microGrid: {
-    backgroundColor: "#FAFAFA",
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 10,
-  },
-  microRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  microName: { fontSize: 14, color: "#555" },
-  microValue: { fontSize: 14, fontWeight: "600", color: "#333" },
-  allergenSection: { marginTop: 20 },
-  allergenRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  allergenBadge: {
-    backgroundColor: "#FDECEA",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: "#F5C6CB",
-  },
-  allergenText: { fontSize: 13, fontWeight: "600", color: "#B71C1C" },
+  newRecipeButtonText: { color: "#5A9A4E", fontSize: 14, fontWeight: "600" },
 });

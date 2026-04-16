@@ -60,7 +60,7 @@ export default function RecipeDetailScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6B35" />
+        <ActivityIndicator size="large" color="#7BAA6E" />
       </View>
     );
   }
@@ -97,7 +97,7 @@ export default function RecipeDetailScreen() {
         </View>
         <View style={styles.recipeHeaderText}>
           <Text style={styles.title}>{recipe.title}</Text>
-          <Text style={styles.description} numberOfLines={3}>{recipe.description}</Text>
+          <Text style={styles.description}>{recipe.description}</Text>
         </View>
       </View>
 
@@ -176,18 +176,18 @@ export default function RecipeDetailScreen() {
           <View style={styles.nutritionGrid}>
             <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.kcal}</Text><Text style={styles.nutritionLabel}>kcal</Text></View>
             <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.protein}g</Text><Text style={styles.nutritionLabel}>Protein</Text></View>
-            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.carbs}g</Text><Text style={styles.nutritionLabel}>Kohlenhydrate</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.carbs}g</Text><Text style={styles.nutritionLabel}>Carbs</Text></View>
             <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.fat}g</Text><Text style={styles.nutritionLabel}>Fett</Text></View>
-            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.fiber}g</Text><Text style={styles.nutritionLabel}>Ballaststoffe</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.fiber}g</Text><Text style={styles.nutritionLabel}>Ballast.</Text></View>
           </View>
 
           <Text style={styles.nutritionSubtitle}>Pro 100g</Text>
           <View style={styles.nutritionGrid}>
             <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.kcal}</Text><Text style={styles.nutritionLabel}>kcal</Text></View>
             <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.protein}g</Text><Text style={styles.nutritionLabel}>Protein</Text></View>
-            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.carbs}g</Text><Text style={styles.nutritionLabel}>Kohlenhydrate</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.carbs}g</Text><Text style={styles.nutritionLabel}>Carbs</Text></View>
             <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.fat}g</Text><Text style={styles.nutritionLabel}>Fett</Text></View>
-            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.fiber}g</Text><Text style={styles.nutritionLabel}>Ballaststoffe</Text></View>
+            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPer100g.fiber}g</Text><Text style={styles.nutritionLabel}>Ballast.</Text></View>
           </View>
 
           <TouchableOpacity
@@ -228,207 +228,99 @@ export default function RecipeDetailScreen() {
   );
 }
 
+const G = "rgba(42, 56, 37, 0.55)";
+const W = (a: number) => `rgba(255,255,255,${a})`;
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF8F0" },
-  content: { padding: 20, paddingBottom: 40 },
-  recipeHeader: {
-    flexDirection: "row",
-    marginBottom: 20,
-    gap: 16,
-  },
-  recipeImageCol: {
-    alignItems: "center" as any,
-  },
-  recipeImage: {
-    width: 120,
-    height: 140,
-    borderRadius: 12,
-  },
-  recipeHeaderText: {
-    flex: 1,
-    justifyContent: "center" as any,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#FFF8F0",
-  },
-  errorText: { fontSize: 16, color: "#999" },
-  titleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 8,
-    gap: 10,
-  },
-  title: { fontSize: 28, fontWeight: "bold", color: "#333" },
+  container: { flex: 1, backgroundColor: "#EEF2EA" },
+  content: { padding: 16, paddingBottom: 40 },
+
+  recipeHeader: { flexDirection: "row", marginBottom: 20, gap: 16, alignItems: "flex-start" },
+  recipeImageCol: { alignItems: "center" as any, flexShrink: 0 },
+  recipeImage: { width: 120, height: 140, borderRadius: 18 },
+  recipeHeaderText: { flex: 1, justifyContent: "flex-start" as any, paddingTop: 2 },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#EEF2EA" },
+  errorText: { fontSize: 16, color: "#98AE92" },
+  titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, gap: 10 },
+  title: { fontSize: 21, fontWeight: "700", color: "#2A3825", lineHeight: 27, marginBottom: 5, letterSpacing: -0.3 },
   creatorBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF3EB",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginTop: 6,
+    alignItems: "center", backgroundColor: G, borderRadius: 8,
+    paddingHorizontal: 8, paddingVertical: 4, marginTop: 8, maxWidth: 120,
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.1)",
   },
-  creatorPlatform: { fontSize: 11, fontWeight: "600", color: "#999" },
-  creatorSeparator: { fontSize: 11, color: "#ccc" },
-  creatorHandle: { fontSize: 11, fontWeight: "700", color: "#FF6B35" },
-  description: { fontSize: 15, color: "#666", lineHeight: 22, marginBottom: 20 },
+  creatorPlatform: { fontSize: 9, fontWeight: "500", color: "rgba(255,255,255,0.5)", marginBottom: 1 },
+  creatorSeparator: { fontSize: 9, color: "rgba(255,255,255,0.3)" },
+  creatorHandle: { fontSize: 9, fontWeight: "600", color: "rgba(255,255,255,0.85)", flexShrink: 1 },
+  description: { fontSize: 13, color: "#6E8868", lineHeight: 19, marginTop: 4 },
+
   metaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  metaItem: { alignItems: "center", flex: 1 },
-  metaLabel: { fontSize: 11, color: "#999", marginBottom: 4 },
-  metaValue: { fontSize: 15, fontWeight: "700", color: "#FF6B35" },
-  servingsRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
+    flexDirection: "row", justifyContent: "space-between",
+    backgroundColor: G, borderRadius: 18, padding: 14, marginBottom: 24,
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+  } as any,
+  metaItem: { alignItems: "center", flex: 1, paddingHorizontal: 2 },
+  metaLabel: { fontSize: 9, color: "rgba(255,255,255,0.45)", marginBottom: 3, textAlign: "center" as any, letterSpacing: 0.3 },
+  metaValue: { fontSize: 14, fontWeight: "700", color: "rgba(255,255,255,0.9)", textAlign: "center" as any },
+  servingsRow: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 },
   servingsButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#FF6B35",
-    alignItems: "center",
-    justifyContent: "center",
+    width: 18, height: 18, borderRadius: 9,
+    backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.2)",
+    alignItems: "center", justifyContent: "center",
   },
-  servingsButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold", lineHeight: 20 },
-  servingsValue: { fontSize: 18, fontWeight: "bold", color: "#FF6B35", minWidth: 20, textAlign: "center" as any },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 14,
-  },
+  servingsButtonText: { color: "rgba(255,255,255,0.9)", fontSize: 11, fontWeight: "600", lineHeight: 13, textAlign: "center" as any },
+  servingsValue: { fontSize: 14, fontWeight: "700", color: "rgba(255,255,255,0.9)", minWidth: 14, textAlign: "center" as any },
+
+  sectionTitle: { fontSize: 18, fontWeight: "700", color: "#2A3825", marginBottom: 14, letterSpacing: -0.2 },
   ingredientsList: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  ingredientRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  bullet: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#FF6B35",
-    marginRight: 12,
-  },
-  ingredientText: { fontSize: 15, color: "#444", flex: 1 },
+    backgroundColor: W(0.55), borderRadius: 20, padding: 16, marginBottom: 24,
+    borderWidth: 0.5, borderColor: W(0.75),
+    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+  } as any,
+  ingredientRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  bullet: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#7BAA6E", marginRight: 12 },
+  ingredientText: { fontSize: 14, color: "#2A3825", flex: 1 },
+
   stepRow: {
-    flexDirection: "row",
-    marginBottom: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    flexDirection: "row", marginBottom: 10, alignItems: "flex-start",
+    backgroundColor: W(0.35), borderRadius: 16, padding: 14,
+    borderWidth: 0.5, borderColor: W(0.5),
   },
   stepNumberContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#FF6B35",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 14,
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: G, justifyContent: "center", alignItems: "center", marginRight: 14,
   },
-  stepNumber: { color: "#fff", fontSize: 15, fontWeight: "bold" },
-  stepText: { flex: 1, fontSize: 15, color: "#444", lineHeight: 22 },
-  actions: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 24,
-  },
+  stepNumber: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  stepText: { flex: 1, fontSize: 14, color: "#2A3825", lineHeight: 21 },
+
+  actions: { flexDirection: "row", gap: 10, marginTop: 24 },
   shareButton: {
-    flex: 1,
-    backgroundColor: "#FF6B35",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-  },
-  shareButtonText: { color: "#fff", fontWeight: "bold", fontSize: 15 },
+    flex: 1, backgroundColor: G, borderRadius: 18, padding: 15, alignItems: "center",
+    boxShadow: "0 4px 20px rgba(42,56,37,0.18)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
+  } as any,
+  shareButtonText: { color: "#fff", fontWeight: "600", fontSize: 14 },
   sourceButton: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#FF6B35",
-  },
-  sourceButtonText: { color: "#FF6B35", fontWeight: "bold", fontSize: 15 },
+    flex: 1, backgroundColor: W(0.5), borderRadius: 18, padding: 15, alignItems: "center",
+    borderWidth: 0.5, borderColor: W(0.7),
+    backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+  } as any,
+  sourceButtonText: { color: "#5A9A4E", fontWeight: "600", fontSize: 14 },
+
   nutritionSection: { marginTop: 24 },
-  nutritionSubtitle: { fontSize: 14, fontWeight: "600", color: "#777", marginBottom: 8, marginTop: 12 },
-  nutritionGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 4,
-  },
-  nutritionItem: {
-    backgroundColor: "#FFF3EB",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
-    minWidth: 80,
-    flex: 1,
-  },
-  nutritionValue: { fontSize: 16, fontWeight: "bold", color: "#FF6B35" },
-  nutritionLabel: { fontSize: 10, color: "#999", marginTop: 2 },
-  microButton: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 10,
-    padding: 12,
-    alignItems: "center",
-    marginTop: 16,
-  },
-  microButtonText: { fontSize: 14, fontWeight: "600", color: "#666" },
-  microGrid: {
-    backgroundColor: "#FAFAFA",
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 10,
-  },
-  microRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  microName: { fontSize: 14, color: "#555" },
-  microValue: { fontSize: 14, fontWeight: "600", color: "#333" },
+  nutritionSubtitle: { fontSize: 12, fontWeight: "600", color: "#8A9E82", marginBottom: 8, marginTop: 12, letterSpacing: 0.3, textTransform: "uppercase" as any },
+  nutritionGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 4 },
+  nutritionItem: { backgroundColor: W(0.4), borderRadius: 14, paddingVertical: 10, paddingHorizontal: 6, alignItems: "center", minWidth: 58, flex: 1, borderWidth: 0.5, borderColor: W(0.6) },
+  nutritionValue: { fontSize: 15, fontWeight: "700", color: "#5A9A4E" },
+  nutritionLabel: { fontSize: 9, color: "#98AE92", marginTop: 2, textAlign: "center" as any },
+  microButton: { backgroundColor: W(0.35), borderRadius: 14, padding: 12, alignItems: "center", marginTop: 16, borderWidth: 0.5, borderColor: W(0.5) },
+  microButtonText: { fontSize: 13, fontWeight: "600", color: "#6E8868" },
+  microGrid: { backgroundColor: W(0.35), borderRadius: 14, padding: 12, marginTop: 10, borderWidth: 0.5, borderColor: W(0.5) },
+  microRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: "rgba(123,170,110,0.06)" },
+  microName: { fontSize: 13, color: "#6E8868" },
+  microValue: { fontSize: 13, fontWeight: "600", color: "#2A3825" },
   allergenSection: { marginTop: 20, marginBottom: 20 },
-  allergenRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  allergenBadge: {
-    backgroundColor: "#FDECEA",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: "#F5C6CB",
-  },
-  allergenText: { fontSize: 13, fontWeight: "600", color: "#B71C1C" },
+  allergenRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  allergenBadge: { backgroundColor: "rgba(155,68,68,0.06)", borderRadius: 10, paddingHorizontal: 11, paddingVertical: 5, borderWidth: 0.5, borderColor: "rgba(155,68,68,0.1)" },
+  allergenText: { fontSize: 12, fontWeight: "600", color: "#9B4444" },
 });

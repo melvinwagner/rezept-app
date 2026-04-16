@@ -17,9 +17,9 @@ import { getRecipes, deleteRecipe, getCookbooks, addCookbook, deleteCookbook, up
 import { Recipe } from "../../types/recipe";
 
 const CARD_COLORS = [
-  "#5D1A1A", "#2E4A2E", "#3E2723", "#1A3A4A",
-  "#4A2C1A", "#6B2D2D", "#1B3A2D", "#3A2A1A",
-  "#2D4A3A", "#4A1A2D",
+  "#3A5A38", "#2E4A3E", "#4A6242", "#2A4A2A",
+  "#3E5A4A", "#526B48", "#2A3E2E", "#4A5A3A",
+  "#365A42", "#3A4A30",
 ];
 
 const CARD_SUBTITLES: Record<string, string> = {
@@ -259,7 +259,7 @@ export default function SavedScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Kochbücher suchen..."
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#A8B8A2"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -288,7 +288,7 @@ export default function SavedScreen() {
                 value={newCookbookName}
                 onChangeText={setNewCookbookName}
                 placeholder="z.B. Desserts, Asiatisch..."
-                placeholderTextColor="#aaa"
+                placeholderTextColor="#A8B8A2"
                 autoFocus
                 onSubmitEditing={handleCreateCookbook}
               />
@@ -307,24 +307,26 @@ export default function SavedScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF8F0" },
-  scrollContent: { paddingBottom: 30 },
+  container: { flex: 1, backgroundColor: "#EEF2EA" },
+  scrollContent: { paddingBottom: 100 },
 
   // Suche
   searchBar: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
   searchInput: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    borderRadius: 14,
     padding: 12,
     fontSize: 14,
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
+    borderWidth: 0.5,
+    borderColor: "rgba(123, 170, 110, 0.15)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+  } as any,
 
   sectionLabel: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: "#2A3825",
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 10,
@@ -337,12 +339,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   cardWrapper: {
-    width: "18.4%" as any,
-    marginHorizontal: "0.8%" as any,
+    width: "48%" as any,
+    marginHorizontal: "1%" as any,
     marginBottom: 16,
   },
   card: {
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: "hidden",
   },
 
@@ -379,17 +381,17 @@ const styles = StyleSheet.create({
   },
   cardInfoText: { flex: 1 },
   cardName: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#fff",
   },
   cardCount: {
-    fontSize: 10,
+    fontSize: 11,
     color: "rgba(255,255,255,0.7)",
-    marginTop: 1,
+    marginTop: 2,
   },
   cardSub: {
-    fontSize: 9,
+    fontSize: 10,
     color: "rgba(255,255,255,0.5)",
     marginTop: 2,
   },
@@ -407,64 +409,66 @@ const styles = StyleSheet.create({
   // Weitere
   comingSoon: {
     marginHorizontal: 16,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    borderRadius: 16,
     padding: 20,
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#eee",
+    borderWidth: 0.5,
+    borderColor: "rgba(123, 170, 110, 0.15)",
     borderStyle: "dashed",
   },
-  comingSoonText: { fontSize: 13, color: "#bbb" },
+  comingSoonText: { fontSize: 13, color: "#A8B8A2" },
 
   // Neue Kategorie
   addSection: { paddingHorizontal: 16, paddingTop: 12 },
   addButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.6)",
+    borderRadius: 16,
     padding: 14,
-    borderWidth: 1,
-    borderColor: "#eee",
+    borderWidth: 0.5,
+    borderColor: "rgba(123, 170, 110, 0.15)",
     gap: 10,
     cursor: "pointer" as any,
   },
-  addPlus: { fontSize: 20, color: "#FF6B35", fontWeight: "bold" },
-  addText: { fontSize: 14, color: "#666" },
+  addPlus: { fontSize: 20, color: "#7BAA6E", fontWeight: "bold" },
+  addText: { fontSize: 14, color: "#6E8868" },
   newBar: { flexDirection: "row", gap: 8 },
   newInput: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    borderRadius: 12,
     padding: 12,
     fontSize: 14,
-    borderWidth: 1,
-    borderColor: "#eee",
+    borderWidth: 0.5,
+    borderColor: "rgba(123, 170, 110, 0.15)",
   },
   newBtn: {
-    backgroundColor: "#FF6B35",
-    borderRadius: 10,
+    backgroundColor: "rgba(123, 170, 110, 0.88)",
+    borderRadius: 12,
     paddingHorizontal: 18,
     justifyContent: "center",
   },
   newBtnText: { color: "#fff", fontWeight: "bold", fontSize: 14 },
   cancelBtn: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 10,
+    backgroundColor: "rgba(123, 170, 110, 0.1)",
+    borderRadius: 12,
     width: 40,
     justifyContent: "center",
     alignItems: "center",
   },
-  cancelBtnText: { color: "#999", fontWeight: "bold", fontSize: 14 },
+  cancelBtnText: { color: "#98AE92", fontWeight: "bold", fontSize: 14 },
 
   // ===== DETAIL =====
   detailHeader: {
-    backgroundColor: "#FF6B35",
+    backgroundColor: "rgba(42, 56, 37, 0.55)",
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 16,
-  },
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+  } as any,
   backButton: { marginBottom: 8 },
   backText: { color: "#fff", fontSize: 15, fontWeight: "600" },
   detailTitle: { fontSize: 24, fontWeight: "bold", color: "#fff" },
@@ -472,35 +476,35 @@ const styles = StyleSheet.create({
 
   recipeList: { padding: 16 },
   recipeCard: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
+    backgroundColor: "rgba(255, 255, 255, 0.6)",
+    borderRadius: 18,
     marginBottom: 14,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.8)",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
+  } as any,
   recipeCardMain: { flexDirection: "row", alignItems: "center" },
   recipeThumb: { width: 80, height: 90, resizeMode: "cover" } as any,
   recipeCardBody: { flex: 1, padding: 12 },
-  recipeTitle: { fontSize: 15, fontWeight: "bold", color: "#333", marginBottom: 2 },
-  recipeDesc: { fontSize: 12, color: "#777", marginBottom: 6 },
+  recipeTitle: { fontSize: 15, fontWeight: "bold", color: "#2A3825", marginBottom: 3 },
+  recipeDesc: { fontSize: 12, color: "#6E8868", marginBottom: 6, lineHeight: 17 },
   recipeMeta: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
-  recipeMetaText: { fontSize: 11, color: "#FF6B35", fontWeight: "600" },
-  recipeMetaDot: { marginHorizontal: 4, color: "#ccc" },
+  recipeMetaText: { fontSize: 11, color: "#7BAA6E", fontWeight: "600" },
+  recipeMetaDot: { marginHorizontal: 4, color: "#C2D0BC" },
   starsRow: { flexDirection: "row", gap: 2 },
-  star: { fontSize: 16, color: "#ddd" },
+  star: { fontSize: 16, color: "#D2DCC8" },
   starActive: { color: "#FFB300" },
-  actionRow: { flexDirection: "row", borderTopWidth: 1, borderTopColor: "#f0f0f0" },
+  actionRow: { flexDirection: "row", borderTopWidth: 1, borderTopColor: "#E2EBD8" },
   actionButton: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 10, gap: 4, cursor: "pointer" as any },
   actionButtonDanger: {},
-  actionIcon: { fontSize: 14, color: "#FF6B35" },
-  actionIconDanger: { color: "#B71C1C" },
-  actionLabel: { fontSize: 12, color: "#666", fontWeight: "600" },
-  actionLabelDanger: { color: "#B71C1C" },
+  actionIcon: { fontSize: 14, color: "#7BAA6E" },
+  actionIconDanger: { color: "#9B4444" },
+  actionLabel: { fontSize: 12, color: "#6E8868", fontWeight: "600" },
+  actionLabelDanger: { color: "#9B4444" },
   emptyList: { alignItems: "center", paddingTop: 50 },
   emptyListEmoji: { fontSize: 48, marginBottom: 12 },
-  emptyListText: { fontSize: 14, color: "#999" },
+  emptyListText: { fontSize: 14, color: "#98AE92" },
 });
