@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   Platform,
   Image,
   Linking,
+  Dimensions,
+  FlatList,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
@@ -19,6 +21,66 @@ import { saveRecipe, getCookbooks, addCookbook } from "../../services/storage";
 import { Recipe, Ingredient, Macros } from "../../types/recipe";
 
 const ADD_UNIT_OPTIONS = ["g", "ml"];
+
+const WIDGET_DATA = [
+  { type: "wusstest", emoji: "✨", label: "Wusstest du?", text: "Zimt kann den Blutzuckerspiegel um bis zu 29% senken. Perfekt im Porridge oder Bananenbrot!" },
+  { type: "tipp", emoji: "💡", label: "Tipp des Tages", text: "Reife Bananen mit braunen Flecken sind süßer — perfekt für Bananenbrot ohne extra Zucker!" },
+  { type: "wusstest", emoji: "❓", label: "Wusstest du?", text: "Ein Ei enthält alle essentiellen Aminosäuren und gilt als Referenz-Protein in der Ernährungswissenschaft." },
+  { type: "tipp", emoji: "🔥", label: "Tipp des Tages", text: "Knoblauch erst 10 Min nach dem Schneiden erhitzen — so bildet sich das gesunde Allicin." },
+  { type: "wusstest", emoji: "✨", label: "Wusstest du?", text: "Olivenöl verliert beim starken Erhitzen seine gesunden Eigenschaften. Zum Braten besser Rapsöl nehmen." },
+  { type: "tipp", emoji: "💡", label: "Tipp des Tages", text: "Reis nach dem Kochen abkühlen lassen — das senkt den glykämischen Index um bis zu 50%." },
+  {
+    type: "fact",
+    emoji: "📊",
+    label: "Food Fact",
+    number: "73%",
+    text: "der Deutschen kochen mindestens 3x pro Woche selbst.",
+  },
+  {
+    type: "fact",
+    emoji: "📊",
+    label: "Food Fact",
+    number: "2.5 Mrd",
+    text: "Rezeptvideos werden monatlich auf TikTok angesehen.",
+  },
+  {
+    type: "fact",
+    emoji: "📊",
+    label: "Food Fact",
+    number: "40%",
+    text: "weniger Lebensmittel werden verschwendet wenn man mit Einkaufsliste kocht.",
+  },
+  {
+    type: "fact",
+    emoji: "📊",
+    label: "Food Fact",
+    number: "8 Min",
+    text: "dauert es durchschnittlich ein Rezept von Hand abzutippen. DAWG macht es in Sekunden.",
+  },
+] as Array<{ type: string; emoji: string; label: string; text: string; number?: string }>;
+
+const GEMUESE_DATA = [
+  { name: "Tomate", text: "Tomaten enthalten Lycopin — ein Antioxidans das beim Erhitzen sogar stärker wird.", img: require("../../assets/gemuese/tomate.jpg") },
+  { name: "Brokkoli", text: "Brokkoli hat mehr Vitamin C als Orangen und ist ein echtes Superfood für das Immunsystem.", img: require("../../assets/gemuese/brokkoli.jpg") },
+  { name: "Karotte", text: "Karotten verbessern tatsächlich die Sehkraft — dank Beta-Carotin, das der Körper in Vitamin A umwandelt.", img: require("../../assets/gemuese/karotte.jpg") },
+  { name: "Paprika", text: "Rote Paprika enthält doppelt so viel Vitamin C wie grüne — sie ist einfach die reifere Version.", img: require("../../assets/gemuese/paprika.jpg") },
+  { name: "Spinat", text: "Spinat verliert beim Kochen 90% seines Volumens. 500g roh werden zu einer kleinen Portion.", img: require("../../assets/gemuese/spinat.jpg") },
+  { name: "Zucchini", text: "Zucchini besteht zu 95% aus Wasser und hat nur 17 kcal pro 100g — perfekt zum Abnehmen.", img: require("../../assets/gemuese/zucchini.jpg") },
+  { name: "Aubergine", text: "Auberginen saugen Öl auf wie ein Schwamm. Tipp: vorher salzen und 20 Min warten.", img: require("../../assets/gemuese/aubergine.jpg") },
+  { name: "Blumenkohl", text: "Blumenkohl kann als Low-Carb Ersatz für Reis, Pizza-Boden und sogar Kartoffelpüree dienen.", img: require("../../assets/gemuese/blumenkohl.jpg") },
+  { name: "Gurke", text: "Gurken bestehen zu 96% aus Wasser — das wasserreichste Gemüse überhaupt.", img: require("../../assets/gemuese/gurke.jpg") },
+  { name: "Süßkartoffel", text: "Süßkartoffeln haben einen niedrigeren glykämischen Index als normale Kartoffeln trotz süßem Geschmack.", img: require("../../assets/gemuese/suesskartoffel.jpg") },
+  { name: "Kürbis", text: "Kürbiskerne enthalten mehr Eisen als Rindfleisch — ein unterschätzter Nährstoff-Booster.", img: require("../../assets/gemuese/kuerbis.jpg") },
+  { name: "Avocado", text: "Avocados reifen erst nach der Ernte. Neben eine Banane legen beschleunigt den Prozess.", img: require("../../assets/gemuese/avocado.jpg") },
+  { name: "Spargel", text: "Weißer und grüner Spargel sind dieselbe Pflanze — weißer wächst unter der Erde ohne Licht.", img: require("../../assets/gemuese/spargel.jpg") },
+  { name: "Pilze", text: "Pilze sind die einzige pflanzliche Vitamin-D-Quelle. Kurz in die Sonne legen erhöht den Gehalt.", img: require("../../assets/gemuese/pilze.jpg") },
+  { name: "Zwiebel", text: "Zwiebeln im Kühlschrank schneiden reduziert das Weinen — Kälte verlangsamt die Reizstoff-Freisetzung.", img: require("../../assets/gemuese/zwiebel.jpg") },
+  { name: "Knoblauch", text: "Eine Knoblauchzehe am Tag kann den Blutdruck um bis zu 10% senken.", img: require("../../assets/gemuese/knoblauch.jpg") },
+  { name: "Rosenkohl", text: "Rosenkohl schmeckt nach dem ersten Frost süßer — Kälte wandelt Stärke in Zucker um.", img: require("../../assets/gemuese/rosenkohl.jpg") },
+  { name: "Radieschen", text: "Radieschen wachsen in nur 4 Wochen — das schnellste Gemüse im eigenen Garten.", img: require("../../assets/gemuese/radieschen.jpg") },
+  { name: "Mangold", text: "Mangold ist eng mit der Rübe verwandt und liefert mehr Eisen als die meisten Gemüsesorten.", img: require("../../assets/gemuese/mangold.jpg") },
+  { name: "Grünkohl", text: "Grünkohl hat pro Kalorie mehr Nährstoffe als fast jedes andere Lebensmittel.", img: require("../../assets/gemuese/gruenkohl.jpg") },
+];
 
 function UnitPicker({ value, onChange }: { value: string | null; onChange: (v: string | null) => void }) {
   return (
@@ -46,7 +108,106 @@ function UnitPicker({ value, onChange }: { value: string | null; onChange: (v: s
   );
 }
 
+function GemueseDesTages() {
+  const today = new Date();
+  const dayIndex = (Math.floor((today.getTime() / 86400000)) + 7) % GEMUESE_DATA.length;
+  const g = GEMUESE_DATA[dayIndex];
+
+  return (
+    <View style={styles.gemueseCard}>
+      <View style={styles.gemueseHeader}>
+        <Text style={styles.gemueseLabel}>🥬  Gemüse des Tages</Text>
+      </View>
+      <Image source={g.img} style={styles.gemueseImage} resizeMode="cover" />
+      <Text style={styles.gemuese_name}>{g.name}</Text>
+      <Text style={styles.gemueseText}>{g.text}</Text>
+      <Pressable
+        style={styles.gemueseBtn}
+        onPress={() => Linking.openURL(`https://www.tiktok.com/search?q=${encodeURIComponent(g.name)}`)}
+      >
+        <Text style={styles.gemuese_btnText}>Finde jetzt passende Rezepte</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function WidgetSlider() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, "ja" | "nein">>({});
+  const screenWidth = Dimensions.get("window").width;
+  const cardWidth = screenWidth - 64;
+
+  const handleAnswer = (index: number, answer: "ja" | "nein") => {
+    setAnswers((prev) => ({ ...prev, [index]: answer }));
+  };
+
+  return (
+    <View style={styles.widgetSection}>
+      <ScrollView
+        horizontal
+        pagingEnabled={false}
+        snapToInterval={cardWidth + 10}
+        decelerationRate="fast"
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingRight: 16 }}
+        onScroll={(e) => {
+          const idx = Math.round(e.nativeEvent.contentOffset.x / (cardWidth + 10));
+          setActiveIndex(idx);
+        }}
+        scrollEventThrottle={16}
+      >
+        {WIDGET_DATA.map((w, i) => (
+          <View key={i} style={[styles.widgetCard, { width: cardWidth, marginRight: 10 }]}>
+            <View style={styles.widgetHeader}>
+              <Text style={styles.widgetEmoji}>{w.emoji}</Text>
+              <Text style={styles.widgetLabel}>{w.label}</Text>
+            </View>
+            {w.type === "fact" && w.number ? (
+              <>
+                <Text style={styles.factNumber}>{w.number}</Text>
+                <Text style={styles.factText}>{w.text}</Text>
+              </>
+            ) : (
+              <Text style={styles.widgetText}>{w.text}</Text>
+            )}
+            {w.type === "wusstest" && (
+              <View style={styles.widgetActions}>
+                {answers[i] ? (
+                  <Text style={styles.widgetAnswered}>
+                    {answers[i] === "ja" ? "👍 Danke!" : "😮 Gut zu wissen!"}
+                  </Text>
+                ) : (
+                  <>
+                    <Pressable
+                      style={styles.widgetBtnJa}
+                      onPress={() => handleAnswer(i, "ja")}
+                    >
+                      <Text style={styles.widgetBtnJaText}>Ja, wusste ich</Text>
+                    </Pressable>
+                    <Pressable
+                      style={styles.widgetBtnNein}
+                      onPress={() => handleAnswer(i, "nein")}
+                    >
+                      <Text style={styles.widgetBtnNeinText}>Nein, spannend!</Text>
+                    </Pressable>
+                  </>
+                )}
+              </View>
+            )}
+          </View>
+        ))}
+      </ScrollView>
+      <View style={styles.widgetDots}>
+        {WIDGET_DATA.map((_, i) => (
+          <View key={i} style={[styles.widgetDot, activeIndex === i && styles.widgetDotActive]} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
 export default function HomeScreen() {
+  const scrollRef = useRef<ScrollView>(null);
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
@@ -174,6 +335,8 @@ export default function HomeScreen() {
     try {
       await saveRecipe({ ...recipe, cookbook });
       setSuccess(`In "${cookbook}" gespeichert!`);
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+      setTimeout(() => setSuccess(""), 3000);
     } catch {
       setError("Rezept konnte nicht gespeichert werden.");
     }
@@ -193,21 +356,30 @@ export default function HomeScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         {!recipe && (
           <>
+            <View style={styles.proCardSmall}>
+              <View style={styles.proSmallLeft}>
+                <Text style={styles.proSmallTitle}>DAWG <Text style={styles.proSmallBadge}>PRO</Text></Text>
+                <Text style={styles.proSmallText}>Unbegrenzt Rezepte · Keine Werbung</Text>
+              </View>
+              <Pressable style={styles.proSmallBtn}>
+                <Text style={styles.proSmallBtnText}>Gratis testen</Text>
+              </Pressable>
+            </View>
+
             <View style={styles.header}>
-              <Image source={require("../../assets/hero.png")} style={styles.heroImage} />
-              <Text style={styles.title}>Video zu Rezept</Text>
-              <Text style={styles.subtitle}>
-                Füge einen TikTok oder Instagram Link ein und erhalte ein
-                übersichtliches Rezept.
+              <Text style={styles.tagline}>
+                Jedes <Text style={styles.taglineAccent}>Video</Text>
+                {"\n"}wird zum <Text style={styles.taglineAccent}>Rezept</Text>.
               </Text>
             </View>
 
-            <View style={styles.inputContainer}>
+            <View style={styles.inputCard}>
               <TextInput
                 style={styles.input}
                 placeholder="https://www.tiktok.com/..."
@@ -220,10 +392,7 @@ export default function HomeScreen() {
               />
               <Pressable
                 role="button"
-                style={[
-                  styles.button,
-                  loading && styles.buttonDisabled,
-                ]}
+                style={[styles.button, loading && styles.buttonDisabled]}
                 onPress={handleGenerate}
               >
                 {loading ? (
@@ -232,6 +401,19 @@ export default function HomeScreen() {
                   <Text style={styles.buttonText}>Rezept erstellen</Text>
                 )}
               </Pressable>
+              <View style={styles.supported}>
+                <View style={styles.supportedItem}><View style={styles.supportedDot} /><Text style={styles.supportedText}>TikTok</Text></View>
+                <View style={styles.supportedItem}><View style={styles.supportedDot} /><Text style={styles.supportedText}>Instagram</Text></View>
+                <View style={styles.supportedItem}><View style={styles.supportedDot} /><Text style={styles.supportedText}>YouTube</Text></View>
+              </View>
+            </View>
+
+            <GemueseDesTages />
+
+            <WidgetSlider />
+
+            <View style={styles.adPlaceholderLarge}>
+              <Text style={styles.adLabel}>Werbung</Text>
             </View>
           </>
         )}
@@ -242,11 +424,7 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        {success ? (
-          <View style={styles.successBox}>
-            <Text style={styles.successText}>{success}</Text>
-          </View>
-        ) : null}
+        {null}
 
         {recipe ? (
           <View style={styles.previewCard}>
@@ -503,11 +681,16 @@ export default function HomeScreen() {
               style={styles.newRecipeButton}
               onPress={() => { setRecipe(null); setUrl(""); setSuccess(""); setError(""); }}
             >
-              <Text style={styles.newRecipeButtonText}>+ Neues Rezept</Text>
+              <Text style={styles.newRecipeButtonText}>Lust auf ein weiteres Rezept?</Text>
             </Pressable>
           </View>
         ) : null}
       </ScrollView>
+      {success ? (
+        <View style={styles.toast}>
+          <Text style={styles.toastText}>{success}</Text>
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
@@ -522,13 +705,47 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 110 },
 
   // === LANDING ===
-  header: { alignItems: "center", marginBottom: 28, marginTop: 8 },
-  heroImage: { width: 90, height: 90, borderRadius: 45, marginBottom: 14, borderWidth: 2, borderColor: W(0.6) },
-  title: { fontSize: 26, fontWeight: "700", color: "#2A3825", letterSpacing: -0.5 },
-  subtitle: { fontSize: 13, color: "#8A9E82", textAlign: "center", marginTop: 6, lineHeight: 19, paddingHorizontal: 20 },
+  header: { alignItems: "center", marginBottom: 4, marginTop: 6 },
+  tagline: { fontSize: 36, fontWeight: "900", color: "#2A3825", textAlign: "center", lineHeight: 42, letterSpacing: -1.5 },
+  taglineAccent: { color: "#7BAA6E" },
+  adPlaceholder: {
+    width: "100%" as any,
+    height: 80,
+    marginBottom: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(42,56,37,0.1)",
+    borderStyle: "dashed" as any,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
+    backgroundColor: "rgba(42,56,37,0.03)",
+  },
+  adLabel: { fontSize: 9, color: "rgba(42,56,37,0.2)", fontWeight: "600", letterSpacing: 1, textTransform: "uppercase" as any },
+  adPlaceholderLarge: {
+    width: "100%" as any,
+    height: 200,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(42,56,37,0.1)",
+    borderStyle: "dashed" as any,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 16,
+    backgroundColor: "rgba(42,56,37,0.03)",
+  },
 
-  // === INPUT ===
-  inputContainer: { marginBottom: 20 },
+  // === INPUT CARD ===
+  inputCard: {
+    backgroundColor: W(0.6), borderRadius: 22, padding: 20, marginTop: 4,
+    borderWidth: 0.5, borderColor: W(0.8),
+    backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+    boxShadow: "0 6px 28px rgba(0,0,0,0.06)",
+  } as any,
+  supported: { flexDirection: "row", justifyContent: "center", gap: 16, marginTop: 14 },
+  supportedItem: { flexDirection: "row", alignItems: "center", gap: 5 },
+  supportedDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#7BAA6E" },
+  supportedText: { fontSize: 10, color: "#98AE92", fontWeight: "500" },
   input: {
     backgroundColor: W(0.65), borderRadius: 18, padding: 16, fontSize: 15,
     borderWidth: 0.5, borderColor: W(0.8), marginBottom: 12,
@@ -548,8 +765,16 @@ const styles = StyleSheet.create({
   // === ALERTS ===
   errorBox: { backgroundColor: "rgba(155,68,68,0.07)", borderRadius: 16, padding: 14, marginBottom: 16, borderWidth: 0.5, borderColor: "rgba(155,68,68,0.12)" },
   errorText: { color: "#9B4444", fontSize: 13 },
-  successBox: { backgroundColor: M(0.08), borderRadius: 16, padding: 14, marginBottom: 16, borderWidth: 0.5, borderColor: M(0.12) },
-  successText: { color: "#4A8A3E", fontSize: 13 },
+  toast: {
+    position: "absolute" as any, top: 10, left: 20, right: 20,
+    backgroundColor: G, borderRadius: 16, padding: 16,
+    alignItems: "center" as any,
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.1)",
+    boxShadow: "0 8px 32px rgba(42,56,37,0.3)",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+    zIndex: 100,
+  } as any,
+  toastText: { color: "#fff", fontSize: 14, fontWeight: "600" },
 
   // === RECIPE CARD ===
   previewCard: {
@@ -677,9 +902,75 @@ const styles = StyleSheet.create({
 
   // === NEW RECIPE BUTTON ===
   newRecipeButton: {
-    borderRadius: 18, padding: 15, alignItems: "center", marginTop: 22,
-    backgroundColor: W(0.4), borderWidth: 0.5, borderColor: W(0.6),
-    cursor: "pointer" as any,
+    borderRadius: 18, padding: 16, alignItems: "center", marginTop: 22,
+    backgroundColor: G, cursor: "pointer" as any,
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
+    boxShadow: "0 6px 24px rgba(42,56,37,0.18)",
+  } as any,
+  newRecipeButtonText: { color: "#fff", fontSize: 15, fontWeight: "600", letterSpacing: 0.3 },
+
+  // === DAWG PRO CTA (compact) ===
+  proCardSmall: {
+    backgroundColor: G, borderRadius: 16, padding: 14,
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.1)",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+    marginBottom: 10, height: 76,
+  } as any,
+  proSmallLeft: { flex: 1 },
+  proSmallTitle: { color: "#fff", fontSize: 16, fontWeight: "800", marginBottom: 3 },
+  proSmallBadge: { color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: "800", letterSpacing: 1 },
+  proSmallText: { color: "rgba(255,255,255,0.45)", fontSize: 10 },
+  proSmallBtn: {
+    backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10,
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.2)", marginLeft: 12,
   },
-  newRecipeButtonText: { color: "#5A9A4E", fontSize: 14, fontWeight: "600" },
+  proSmallBtnText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+
+  // === GEMÜSE DES TAGES ===
+  gemueseCard: {
+    backgroundColor: W(0.55), borderRadius: 22, padding: 18, marginTop: 16,
+    borderWidth: 0.5, borderColor: W(0.75),
+    backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+    overflow: "hidden" as any,
+  } as any,
+  gemueseHeader: { marginBottom: 12 },
+  gemueseLabel: { fontSize: 10, fontWeight: "700", color: "#8A9E82", letterSpacing: 0.5, textTransform: "uppercase" as any },
+  gemueseImage: { width: "100%" as any, height: 160, borderRadius: 14, marginBottom: 12 },
+  gemuese_name: { fontSize: 20, fontWeight: "800", color: "#2A3825", letterSpacing: -0.3, marginBottom: 4 },
+  gemueseText: { fontSize: 13, color: "#6E8868", lineHeight: 19, marginBottom: 14 },
+  gemueseBtn: {
+    backgroundColor: G, borderRadius: 14, padding: 13, alignItems: "center",
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
+  },
+  gemuese_btnText: { color: "#fff", fontSize: 13, fontWeight: "600" },
+
+  // === WIDGET SLIDER ===
+  widgetSection: { marginBottom: 10 },
+  widgetCard: {
+    backgroundColor: W(0.55), borderRadius: 20, padding: 18,
+    borderWidth: 0.5, borderColor: W(0.75),
+    backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+  } as any,
+  widgetHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
+  widgetEmoji: { fontSize: 32 },
+  widgetLabel: { fontSize: 15, fontWeight: "700", color: "#2A3825", letterSpacing: -0.2 },
+  widgetText: { fontSize: 14, color: "#2A3825", lineHeight: 21 },
+  factNumber: { fontSize: 32, fontWeight: "800", color: "#5A9A4E", textAlign: "center" as any, marginVertical: 6, letterSpacing: -1 },
+  factText: { fontSize: 12, color: "#8A9E82", textAlign: "center" as any, lineHeight: 17 },
+  widgetActions: { flexDirection: "row", gap: 8, marginTop: 14 },
+  widgetBtnJa: {
+    flex: 1, backgroundColor: G, borderRadius: 12, padding: 10, alignItems: "center",
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
+  },
+  widgetBtnJaText: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  widgetBtnNein: {
+    flex: 1, backgroundColor: W(0.45), borderRadius: 12, padding: 10, alignItems: "center",
+    borderWidth: 0.5, borderColor: W(0.65),
+  },
+  widgetBtnNeinText: { color: "#5A9A4E", fontSize: 12, fontWeight: "600" },
+  widgetAnswered: { fontSize: 13, color: "#7BAA6E", fontWeight: "600", marginTop: 4 },
+  widgetDots: { flexDirection: "row", justifyContent: "center", gap: 5, marginTop: 12 },
+  widgetDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "rgba(42,56,37,0.12)" },
+  widgetDotActive: { backgroundColor: "#7BAA6E", width: 18 },
 });

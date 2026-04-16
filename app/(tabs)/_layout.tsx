@@ -22,7 +22,7 @@ export default function TabLayout() {
           letterSpacing: 0.2,
         },
         tabBarStyle: {
-          backgroundColor: "rgba(42, 56, 37, 0.55)",
+          backgroundColor: "rgba(42, 56, 37, 0.97)",
           borderTopWidth: 0,
           height: 64,
           paddingTop: 6,
@@ -34,8 +34,8 @@ export default function TabLayout() {
           position: "absolute" as any,
           borderWidth: 0.5,
           borderColor: "rgba(255, 255, 255, 0.1)",
-          backdropFilter: "blur(30px)",
-          WebkitBackdropFilter: "blur(30px)",
+          backdropFilter: "blur(50px)",
+          WebkitBackdropFilter: "blur(50px)",
           boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
         } as any,
         tabBarItemStyle: {
@@ -50,7 +50,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "DAWG",
-          tabBarLabel: "Neu",
+          tabBarLabel: "Start",
           headerRight: () => (
             <Image
               source={require("../../assets/dawg-logo.png")}
@@ -60,8 +60,8 @@ export default function TabLayout() {
           ),
           tabBarIcon: ({ focused }) => (
             <Image
-              source={require("../../assets/icon-new.png")}
-              style={{ width: 22, height: 22, opacity: focused ? 1 : 0.5 }}
+              source={require("../../assets/dawg-logo.png")}
+              style={{ width: 24, height: 24, opacity: focused ? 1 : 0.5 }}
               resizeMode="contain"
             />
           ),
@@ -84,15 +84,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="feed"
         options={{
-          title: "DAWG",
-          tabBarLabel: "Feed",
-          tabBarIcon: ({ focused }) => (
-            <Image
-              source={require("../../assets/dawg-logo.png")}
-              style={{ width: 24, height: 24, opacity: focused ? 1 : 0.5 }}
-              resizeMode="contain"
-            />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen

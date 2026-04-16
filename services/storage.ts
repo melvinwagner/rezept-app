@@ -3,6 +3,14 @@ import { Recipe } from "../types/recipe";
 
 const RECIPES_KEY = "saved_recipes";
 const COOKBOOKS_KEY = "cookbooks";
+const COOKBOOK_META_KEY = "cookbook_meta";
+
+export interface CookbookMeta {
+  colorIndex: number;
+  emojiBgIndex: number;
+  emojiIndex: number;
+  tags: string[];
+}
 
 // Rezepte
 export async function saveRecipe(recipe: Recipe): Promise<void> {
@@ -47,12 +55,41 @@ export async function addCookbook(name: string): Promise<void> {
   }
 }
 
+// Kochbuch-Metadaten
+export async function getCookbookMeta(): Promise<Record<string, CookbookMeta>> {
+  const data = await AsyncStorage.getItem(COOKBOOK_META_KEY);
+  if (!data) return {};
+  return JSON.parse(data);
+}
+
+export async function saveCookbookMeta(name: string, meta: CookbookMeta): Promise<void> {
+  const all = await getCookbookMeta();
+  all[name] = meta;
+  await AsyncStorage.setItem(COOKBOOK_META_KEY, JSON.stringify(all));
+}
+
+export async function renameCookbookMeta(oldName: string, newName: string): Promise<void> {
+  const all = await getCookbookMeta();
+  if (all[oldName]) {
+    all[newName] = all[oldName];
+    delete all[oldName];
+    await AsyncStorage.setItem(COOKBOOK_META_KEY, JSON.stringify(all));
+  }
+}
+
+export async function deleteCookbookMeta(name: string): Promise<void> {
+  const all = await getCookbookMeta();
+  delete all[name];
+  await AsyncStorage.setItem(COOKBOOK_META_KEY, JSON.stringify(all));
+}
+
 export async function deleteCookbook(name: string): Promise<void> {
   const cookbooks = await getCookbooks();
   const filtered = cookbooks.filter((c) => c !== name);
   await AsyncStorage.setItem(COOKBOOKS_KEY, JSON.stringify(filtered));
 
-  // Rezepte in diesem Kochbuch: cookbook-Feld entfernen
+  await deleteCookbookMeta(name);
+
   const recipes = await getRecipes();
   const updated = recipes.map((r) =>
     r.cookbook === name ? { ...r, cookbook: undefined } : r
