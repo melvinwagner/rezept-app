@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Linking,
   Share,
+  Image,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { getRecipes } from "../../services/storage";
@@ -74,8 +75,31 @@ export default function RecipeDetailScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>{recipe.title}</Text>
-      <Text style={styles.description}>{recipe.description}</Text>
+      <View style={styles.recipeHeader}>
+        <View style={styles.recipeImageCol}>
+          {recipe.imageUrl && (
+            <Image
+              source={{ uri: recipe.imageUrl }}
+              style={styles.recipeImage}
+              resizeMode="cover"
+            />
+          )}
+          {recipe.creatorHandle && (
+            <TouchableOpacity
+              style={styles.creatorBadge}
+              onPress={() => recipe.creatorUrl && Linking.openURL(recipe.creatorUrl)}
+            >
+              <Text style={styles.creatorPlatform}>{recipe.creatorPlatform}</Text>
+              <Text style={styles.creatorSeparator}> | </Text>
+              <Text style={styles.creatorHandle}>{recipe.creatorHandle}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.recipeHeaderText}>
+          <Text style={styles.title}>{recipe.title}</Text>
+          <Text style={styles.description} numberOfLines={3}>{recipe.description}</Text>
+        </View>
+      </View>
 
       <View style={styles.metaRow}>
         <View style={styles.metaItem}>
@@ -207,6 +231,23 @@ export default function RecipeDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFF8F0" },
   content: { padding: 20, paddingBottom: 40 },
+  recipeHeader: {
+    flexDirection: "row",
+    marginBottom: 20,
+    gap: 16,
+  },
+  recipeImageCol: {
+    alignItems: "center" as any,
+  },
+  recipeImage: {
+    width: 120,
+    height: 140,
+    borderRadius: 12,
+  },
+  recipeHeaderText: {
+    flex: 1,
+    justifyContent: "center" as any,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -214,7 +255,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF8F0",
   },
   errorText: { fontSize: 16, color: "#999" },
-  title: { fontSize: 28, fontWeight: "bold", color: "#333", marginBottom: 8 },
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 8,
+    gap: 10,
+  },
+  title: { fontSize: 28, fontWeight: "bold", color: "#333" },
+  creatorBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF3EB",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginTop: 6,
+  },
+  creatorPlatform: { fontSize: 11, fontWeight: "600", color: "#999" },
+  creatorSeparator: { fontSize: 11, color: "#ccc" },
+  creatorHandle: { fontSize: 11, fontWeight: "700", color: "#FF6B35" },
   description: { fontSize: 15, color: "#666", lineHeight: 22, marginBottom: 20 },
   metaRow: {
     flexDirection: "row",

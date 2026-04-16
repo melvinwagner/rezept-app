@@ -31,5 +31,8 @@ export interface Recipe {
   rating?: number;
   cookbook?: string;
   sourceUrl: string;
+  creatorPlatform?: string;
+  creatorHandle?: string;
+  creatorUrl?: string;
   createdAt: string;
 }

@@ -4,6 +4,31 @@ import { Recipe, Ingredient, Macros } from "../types/recipe";
 const BASE_URL = "http://localhost:3001";
 const PROXY_URL = `${BASE_URL}/api/generate-recipe`;
 
+function parseCreatorFromUrl(url: string): {
+  platform?: string;
+  handle?: string;
+  profileUrl?: string;
+} {
+  try {
+    const tiktokMatch = url.match(/tiktok\.com\/@([^/?#]+)/i);
+    if (tiktokMatch) {
+      const handle = tiktokMatch[1];
+      return { platform: "TikTok", handle: `@${handle}`, profileUrl: `https://www.tiktok.com/@${handle}` };
+    }
+    const instaMatch = url.match(/instagram\.com\/([^/?#]+)\/(reel|p|reels)\//i);
+    if (instaMatch) {
+      const handle = instaMatch[1];
+      return { platform: "Instagram", handle: `@${handle}`, profileUrl: `https://www.instagram.com/${handle}/` };
+    }
+    const ytMatch = url.match(/youtube\.com\/@([^/?#]+)/i);
+    if (ytMatch) {
+      const handle = ytMatch[1];
+      return { platform: "YouTube", handle: `@${handle}`, profileUrl: `https://www.youtube.com/@${handle}` };
+    }
+  } catch {}
+  return {};
+}
+
 let API_KEY = "";
 export function setApiKey(key: string) {
   API_KEY = key;
@@ -30,6 +55,7 @@ export async function generateRecipe(videoUrl: string): Promise<Recipe> {
   }
 
   const parsed = await response.json();
+  const creator = parseCreatorFromUrl(videoUrl);
 
   return {
     id: Date.now().toString(),
@@ -47,6 +73,9 @@ export async function generateRecipe(videoUrl: string): Promise<Recipe> {
     thumbnail: parsed.thumbnail || undefined,
     imageUrl: parsed.imageUrl || undefined,
     sourceUrl: videoUrl,
+    creatorPlatform: creator.platform,
+    creatorHandle: creator.handle,
+    creatorUrl: creator.profileUrl,
     createdAt: new Date().toISOString(),
   };
 }

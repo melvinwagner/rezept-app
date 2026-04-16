@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Linking,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
@@ -245,8 +246,31 @@ export default function HomeScreen() {
 
         {recipe && (
           <View style={styles.previewCard}>
-            <Text style={styles.recipeTitle}>{recipe.title}</Text>
-            <Text style={styles.recipeDesc}>{recipe.description}</Text>
+            <View style={styles.recipeHeader}>
+              <View style={styles.recipeImageCol}>
+                {recipe.imageUrl && (
+                  <Image
+                    source={{ uri: recipe.imageUrl }}
+                    style={styles.recipeImage}
+                    resizeMode="cover"
+                  />
+                )}
+                {recipe.creatorHandle && (
+                  <Pressable
+                    style={styles.creatorBadge}
+                    onPress={() => recipe.creatorUrl && Linking.openURL(recipe.creatorUrl)}
+                  >
+                    <Text style={styles.creatorPlatform}>{recipe.creatorPlatform}</Text>
+                    <Text style={styles.creatorSeparator}> | </Text>
+                    <Text style={styles.creatorHandle}>{recipe.creatorHandle}</Text>
+                  </Pressable>
+                )}
+              </View>
+              <View style={styles.recipeHeaderText}>
+                <Text style={styles.recipeTitle}>{recipe.title}</Text>
+                <Text style={styles.recipeDesc} numberOfLines={3}>{recipe.description}</Text>
+              </View>
+            </View>
 
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
@@ -533,8 +557,38 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)" as any,
+    overflow: "hidden" as any,
   },
-  recipeTitle: { fontSize: 24, fontWeight: "bold", color: "#333", marginBottom: 8 },
+  recipeHeader: {
+    flexDirection: "row",
+    marginBottom: 16,
+    gap: 14,
+  },
+  recipeImageCol: {
+    alignItems: "center" as any,
+  },
+  recipeImage: {
+    width: 100,
+    height: 120,
+    borderRadius: 10,
+  },
+  recipeHeaderText: {
+    flex: 1,
+    justifyContent: "center" as any,
+  },
+  creatorBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF3EB",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginTop: 4,
+  },
+  creatorPlatform: { fontSize: 11, fontWeight: "600" as any, color: "#999" },
+  creatorSeparator: { fontSize: 11, color: "#ccc" },
+  creatorHandle: { fontSize: 11, fontWeight: "700" as any, color: "#FF6B35" },
+  recipeTitle: { fontSize: 24, fontWeight: "bold" as any, color: "#333" },
   recipeDesc: { fontSize: 14, color: "#666", marginBottom: 16, lineHeight: 20 },
   metaRow: {
     flexDirection: "row",
