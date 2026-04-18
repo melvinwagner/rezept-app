@@ -13,6 +13,12 @@ export interface Macros {
   fiber: number;
 }
 
+export interface ImageTransform {
+  scale: number;
+  translateX: number;
+  translateY: number;
+}
+
 export interface Recipe {
   id: string;
   title: string;
@@ -28,6 +34,9 @@ export interface Recipe {
   allergens: string[];
   thumbnail?: string;
   imageUrl?: string;
+  imageTransform?: ImageTransform;
+  tags?: string[];
+  notes?: string;
   rating?: number;
   cookbook?: string;
   sourceUrl: string;

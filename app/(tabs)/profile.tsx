@@ -1,142 +1,342 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   Pressable,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect } from "expo-router";
+import { getRecipes, getCookbooks } from "../../services/storage";
 
 export default function ProfileScreen() {
+  const [recipeCount, setRecipeCount] = useState(0);
+  const [cookbookCount, setCookbookCount] = useState(0);
+  const streak = 0;
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const r = await getRecipes();
+        const c = await getCookbooks();
+        setRecipeCount(r.length);
+        setCookbookCount(c.length);
+      })();
+    }, [])
+  );
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.avatarSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>👤</Text>
+      <View style={styles.book}>
+        <LinearGradient
+          colors={["#6B8B68", "#1E2E1A"]}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 0.8, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.spine} />
+
+        <View style={styles.brandRow}>
+          <View style={styles.brandDash} />
+          <Text style={styles.brand}>Paul's Kitchen</Text>
+          <View style={styles.brandDash} />
         </View>
-        <Text style={styles.username}>Gastbenutzer</Text>
-        <Text style={styles.subtitle}>Melde dich an um deine Rezepte zu synchronisieren</Text>
+
+        <View style={styles.crest}>
+          <Text style={styles.crestLetter}>P</Text>
+        </View>
+
+        <View style={styles.dividerTop} />
+
+        <View style={styles.titleBlock}>
+          <Text style={styles.title}>Paul</Text>
+          <Text style={styles.title}>Schlatte</Text>
+          <Text style={styles.subtitle}>Ein Archiv in Bewegung</Text>
+        </View>
+
+        <View style={styles.dividerMid} />
+
+        <View style={styles.stats}>
+          <View style={styles.stat}>
+            <Text style={styles.statValue}>{recipeCount}</Text>
+            <Text style={styles.statLabel}>Rezepte</Text>
+          </View>
+          <View style={styles.statSeparator} />
+          <View style={styles.stat}>
+            <Text style={styles.statValue}>{cookbookCount}</Text>
+            <Text style={styles.statLabel}>Bücher</Text>
+          </View>
+          <View style={styles.statSeparator} />
+          <View style={styles.stat}>
+            <Text style={styles.statValue}>{streak}</Text>
+            <Text style={styles.statLabel}>Streak</Text>
+          </View>
+        </View>
+
+        <View style={styles.dividerBot} />
+
+        <View style={styles.socials}>
+          <Pressable style={[styles.social, styles.socialIG]}>
+            <Text style={styles.socialText}>IG</Text>
+          </Pressable>
+          <Pressable style={[styles.social, styles.socialTT]}>
+            <Text style={styles.socialText}>TT</Text>
+          </Pressable>
+          <Pressable style={[styles.social, styles.socialYT]}>
+            <Text style={styles.socialText}>YT</Text>
+          </Pressable>
+          <Pressable style={[styles.social, styles.socialWeb]}>
+            <Text style={styles.socialText}>↗</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.edition}>— Edition 2026 —</Text>
       </View>
 
-      <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>0</Text>
-          <Text style={styles.statLabel}>Rezepte</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>0</Text>
-          <Text style={styles.statLabel}>Kochbücher</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>0</Text>
-          <Text style={styles.statLabel}>Favoriten</Text>
-        </View>
-      </View>
-
-      <Pressable style={styles.loginButton}>
-        <Text style={styles.loginButtonText}>Anmelden</Text>
-      </Pressable>
-
-      <View style={styles.menuSection}>
-        <Pressable style={styles.menuItem}>
-          <Text style={styles.menuIcon}>📊</Text>
-          <Text style={styles.menuText}>Meine Statistiken</Text>
-          <Text style={styles.menuArrow}>›</Text>
+      <View style={styles.settings}>
+        <Pressable style={styles.settingsItem}>
+          <Text style={styles.settingsIcon}>✎</Text>
+          <Text style={styles.settingsText}>Profil bearbeiten</Text>
+          <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
-        <Pressable style={styles.menuItem}>
-          <Text style={styles.menuIcon}>🔔</Text>
-          <Text style={styles.menuText}>Benachrichtigungen</Text>
-          <Text style={styles.menuArrow}>›</Text>
+        <View style={styles.settingsDivider} />
+        <Pressable style={styles.settingsItem}>
+          <Text style={styles.settingsIcon}>🌿</Text>
+          <Text style={styles.settingsText}>Ernährungspräferenzen</Text>
+          <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
-        <Pressable style={styles.menuItem}>
-          <Text style={styles.menuIcon}>🌿</Text>
-          <Text style={styles.menuText}>Ernährungspräferenzen</Text>
-          <Text style={styles.menuArrow}>›</Text>
+        <View style={styles.settingsDivider} />
+        <Pressable style={styles.settingsItem}>
+          <Text style={styles.settingsIcon}>🔗</Text>
+          <Text style={styles.settingsText}>Socials verknüpfen</Text>
+          <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
-        <Pressable style={styles.menuItem}>
-          <Text style={styles.menuIcon}>💬</Text>
-          <Text style={styles.menuText}>Feedback geben</Text>
-          <Text style={styles.menuArrow}>›</Text>
-        </Pressable>
-        <Pressable style={styles.menuItem}>
-          <Text style={styles.menuIcon}>📄</Text>
-          <Text style={styles.menuText}>Datenschutz & AGB</Text>
-          <Text style={styles.menuArrow}>›</Text>
+        <View style={styles.settingsDivider} />
+        <Pressable style={styles.settingsItem}>
+          <Text style={styles.settingsIcon}>📤</Text>
+          <Text style={styles.settingsText}>Karte teilen</Text>
+          <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
       </View>
 
-      <Text style={styles.version}>DAWG v1.0.0</Text>
+      <Text style={styles.version}>DAWG · Vol. I · Ausgabe 2026</Text>
     </ScrollView>
   );
 }
 
+const GOLD = "#f4d88f";
+const GOLD_SOFT = "rgba(244,216,143,0.6)";
+const GOLD_SOFTER = "rgba(244,216,143,0.35)";
+const GOLD_MUTED = "rgba(244,216,143,0.5)";
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#EEF2EA" },
-  content: { padding: 20, paddingBottom: 100 },
-  avatarSection: { alignItems: "center", marginBottom: 24, marginTop: 10 },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(42, 56, 37, 0.08)",
-    borderWidth: 0.5,
-    borderColor: "rgba(42, 56, 37, 0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  avatarText: { fontSize: 36 },
-  username: { fontSize: 22, fontWeight: "bold", color: "#2A3825" },
-  subtitle: { fontSize: 13, color: "#98AE92", marginTop: 4, textAlign: "center" },
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    backgroundColor: "rgba(255, 255, 255, 0.6)",
-    borderRadius: 18,
-    padding: 18,
+  content: { padding: 20, paddingBottom: 110 },
+
+  book: {
+    width: "100%" as any,
+    aspectRatio: 2 / 3,
+    borderRadius: 6,
+    overflow: "hidden" as any,
+    position: "relative" as any,
+    boxShadow: "0 18px 40px rgba(0,0,0,0.22)",
     marginBottom: 20,
-    borderWidth: 0.5,
-    borderColor: "rgba(255, 255, 255, 0.8)",
-    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
   } as any,
-  statItem: { alignItems: "center" },
-  statValue: { fontSize: 22, fontWeight: "bold", color: "#7BAA6E" },
-  statLabel: { fontSize: 11, color: "#98AE92", marginTop: 2 },
-  loginButton: {
-    backgroundColor: "rgba(42, 56, 37, 0.55)",
-    borderRadius: 18,
-    padding: 16,
-    alignItems: "center",
-    marginBottom: 24,
-    boxShadow: "0 6px 24px rgba(42,56,37,0.18)",
-    borderWidth: 0.5,
-    borderColor: "rgba(255,255,255,0.08)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
-  } as any,
-  loginButtonText: { color: "#fff", fontSize: 15, fontWeight: "600", letterSpacing: 0.3 },
-  menuSection: {
-    backgroundColor: "rgba(255, 255, 255, 0.6)",
-    borderRadius: 18,
-    overflow: "hidden",
-    borderWidth: 0.5,
-    borderColor: "rgba(255, 255, 255, 0.8)",
-    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-  } as any,
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 15,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "rgba(42,56,37,0.05)",
+  spine: {
+    position: "absolute" as any,
+    left: 0, top: 0, bottom: 0,
+    width: 4,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    zIndex: 5,
   },
-  menuIcon: { fontSize: 17, marginRight: 14 },
-  menuText: { flex: 1, fontSize: 14, color: "#2A3825" },
-  menuArrow: { fontSize: 18, color: "rgba(42,56,37,0.2)" },
-  version: { textAlign: "center", color: "#C2D0BC", fontSize: 12, marginTop: 24 },
+
+  brandRow: {
+    position: "absolute" as any,
+    top: 28,
+    left: 0, right: 0,
+    flexDirection: "row",
+    alignItems: "center" as any,
+    justifyContent: "center",
+    gap: 8,
+  },
+  brandDash: { width: 14, height: 0.5, backgroundColor: GOLD_SOFTER },
+  brand: {
+    fontSize: 10,
+    letterSpacing: 3,
+    textTransform: "uppercase" as any,
+    color: GOLD_SOFT,
+    fontWeight: "700" as any,
+  },
+
+  crest: {
+    position: "absolute" as any,
+    top: "12%" as any,
+    alignSelf: "center" as any,
+    left: "50%" as any,
+    marginLeft: -36,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 1.5,
+    borderColor: GOLD_SOFT,
+    alignItems: "center" as any,
+    justifyContent: "center" as any,
+  } as any,
+  crestLetter: {
+    fontSize: 30,
+    fontWeight: "900" as any,
+    color: GOLD,
+  },
+
+  dividerTop: {
+    position: "absolute" as any,
+    top: "27%" as any,
+    left: "12%" as any,
+    right: "12%" as any,
+    height: 0.5,
+    backgroundColor: GOLD_SOFTER,
+  } as any,
+
+  titleBlock: {
+    position: "absolute" as any,
+    top: "30%" as any,
+    left: 20, right: 20,
+    alignItems: "center" as any,
+  } as any,
+  title: {
+    fontSize: 38,
+    fontWeight: "900" as any,
+    color: "#fff",
+    textAlign: "center" as any,
+    letterSpacing: -1.5,
+    lineHeight: 40,
+  },
+  subtitle: {
+    fontSize: 10,
+    fontStyle: "italic" as any,
+    letterSpacing: 2,
+    color: GOLD_MUTED,
+    marginTop: 14,
+    textAlign: "center" as any,
+  },
+
+  dividerMid: {
+    position: "absolute" as any,
+    top: "59%" as any,
+    left: "12%" as any,
+    right: "12%" as any,
+    height: 0.5,
+    backgroundColor: GOLD_SOFTER,
+  } as any,
+
+  stats: {
+    position: "absolute" as any,
+    top: "62%" as any,
+    left: 20, right: 20,
+    flexDirection: "row",
+    alignItems: "center" as any,
+  } as any,
+  stat: { flex: 1, alignItems: "center" as any },
+  statValue: {
+    fontSize: 24,
+    fontWeight: "900" as any,
+    color: "#fff",
+  },
+  statLabel: {
+    fontSize: 8,
+    textTransform: "uppercase" as any,
+    letterSpacing: 1.5,
+    color: GOLD_MUTED,
+    marginTop: 3,
+    fontWeight: "700" as any,
+  },
+  statSeparator: {
+    width: 0.5,
+    height: 32,
+    backgroundColor: GOLD_SOFTER,
+  },
+
+  dividerBot: {
+    position: "absolute" as any,
+    top: "78%" as any,
+    left: "12%" as any,
+    right: "12%" as any,
+    height: 0.5,
+    backgroundColor: GOLD_SOFTER,
+  } as any,
+
+  socials: {
+    position: "absolute" as any,
+    top: "82%" as any,
+    left: 0, right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
+  } as any,
+  social: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center" as any,
+    justifyContent: "center" as any,
+    borderWidth: 0.5,
+    borderColor: "rgba(255,255,255,0.15)",
+  },
+  socialIG: {
+    backgroundColor: "#dd2a7b",
+  },
+  socialTT: { backgroundColor: "#000" },
+  socialYT: { backgroundColor: "#ff0000" },
+  socialWeb: { backgroundColor: "#7BAA6E" },
+  socialText: {
+    color: "#fff",
+    fontWeight: "800" as any,
+    fontSize: 11,
+    letterSpacing: -0.3,
+  },
+
+  edition: {
+    position: "absolute" as any,
+    bottom: 18,
+    left: 0, right: 0,
+    textAlign: "center" as any,
+    fontSize: 9,
+    letterSpacing: 2,
+    textTransform: "uppercase" as any,
+    color: "rgba(244,216,143,0.4)",
+    fontWeight: "700" as any,
+  } as any,
+
+  settings: {
+    backgroundColor: "rgba(255,255,255,0.6)",
+    borderRadius: 18,
+    overflow: "hidden" as any,
+    borderWidth: 0.5,
+    borderColor: "rgba(255,255,255,0.8)",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
+  } as any,
+  settingsItem: {
+    flexDirection: "row",
+    alignItems: "center" as any,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  settingsIcon: { fontSize: 15, color: "#5A9A4E", width: 20, textAlign: "center" as any },
+  settingsText: { flex: 1, fontSize: 14, color: "#2A3825", fontWeight: "600" as any },
+  settingsChevron: { fontSize: 18, color: "rgba(42,56,37,0.25)" },
+  settingsDivider: { height: 0.5, backgroundColor: "rgba(42,56,37,0.06)", marginLeft: 48 },
+
+  version: {
+    textAlign: "center" as any,
+    color: "#A8B8A2",
+    fontSize: 11,
+    marginTop: 20,
+    letterSpacing: 1.5,
+    textTransform: "uppercase" as any,
+    fontWeight: "600" as any,
+  },
 });

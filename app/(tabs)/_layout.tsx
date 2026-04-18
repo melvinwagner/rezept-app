@@ -70,8 +70,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="saved"
         options={{
-          title: "Kochbuch",
-          tabBarLabel: "Kochbuch",
+          title: "Magazin",
+          tabBarLabel: "Magazin",
           tabBarIcon: ({ focused }) => (
             <Image
               source={require("../../assets/icon-book.png")}
@@ -90,8 +90,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profil",
-          tabBarLabel: "Profil",
+          title: "Autor",
+          tabBarLabel: "Autor",
           tabBarIcon: ({ focused }) => (
             <Image
               source={require("../../assets/icon-profile.png")}

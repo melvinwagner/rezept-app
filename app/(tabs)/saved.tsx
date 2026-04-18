@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
   Image,
   Modal,
 } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { getRecipes, deleteRecipe, getCookbooks, addCookbook, deleteCookbook, updateRecipe, getCookbookMeta, saveCookbookMeta, renameCookbookMeta, CookbookMeta } from "../../services/storage";
 import { Recipe } from "../../types/recipe";
@@ -138,6 +138,31 @@ export default function SavedScreen() {
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [editingCookbook, setEditingCookbook] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRecipeIds, setSelectedRecipeIds] = useState<string[]>([]);
+  const [recipeMenuOpen, setRecipeMenuOpen] = useState<string | null>(null);
+
+  const params = useLocalSearchParams<{ cookbook?: string }>();
+
+  const sliderRef = useRef<ScrollView>(null);
+  const sliderOffset = useRef(0);
+  const SLIDER_CARD_W = 168;
+  const SLIDER_BLOCK_W = FEATURED_BOOKS.length * SLIDER_CARD_W;
+
+  useEffect(() => {
+    sliderOffset.current = SLIDER_BLOCK_W;
+    sliderRef.current?.scrollTo({ x: SLIDER_BLOCK_W, animated: false });
+
+    const interval = setInterval(() => {
+      sliderOffset.current += SLIDER_CARD_W;
+      if (sliderOffset.current >= SLIDER_BLOCK_W * 2) {
+        sliderOffset.current = SLIDER_BLOCK_W;
+        sliderRef.current?.scrollTo({ x: sliderOffset.current, animated: false });
+      } else {
+        sliderRef.current?.scrollTo({ x: sliderOffset.current, animated: true });
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [SLIDER_BLOCK_W]);
 
   useFocusEffect(
     useCallback(() => {
@@ -145,9 +170,16 @@ export default function SavedScreen() {
     }, [])
   );
 
+  useEffect(() => {
+    if (params.cookbook) {
+      setSelectedCookbook(params.cookbook);
+    }
+  }, [params.cookbook]);
+
   const loadData = async () => {
     const [r, c, m] = await Promise.all([getRecipes(), getCookbooks(), getCookbookMeta()]);
-    setRecipes(r);
+    const dedupedRecipes = Array.from(new Map(r.map((x) => [x.id, x])).values());
+    setRecipes(dedupedRecipes);
     if (!c.includes("Meine Rezepte")) {
       c.unshift("Meine Rezepte");
       await addCookbook("Meine Rezepte");
@@ -302,6 +334,129 @@ export default function SavedScreen() {
     );
   };
 
+  const isSelecting = selectedRecipeIds.length > 0;
+  const isRecipeSelected = (id: string) => selectedRecipeIds.includes(id);
+  const toggleRecipeSelect = (id: string) => {
+    setSelectedRecipeIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+  const cancelSelection = () => setSelectedRecipeIds([]);
+
+  const confirmAndRun = (message: string, run: () => void | Promise<void>) => {
+    if (Platform.OS === "web") {
+      if (window.confirm(message)) run();
+    } else {
+      Alert.alert("Sind Sie sicher?", message, [
+        { text: "Abbrechen", style: "cancel" },
+        { text: "Löschen", style: "destructive", onPress: () => run() },
+      ]);
+    }
+  };
+
+  const handleBulkDelete = () => {
+    const count = selectedRecipeIds.length;
+    const msg = `${count} ${count === 1 ? "Rezept" : "Rezepte"} wirklich löschen?`;
+    confirmAndRun(msg, async () => {
+      for (const id of selectedRecipeIds) {
+        await deleteRecipe(id);
+      }
+      setSelectedRecipeIds([]);
+      loadData();
+    });
+  };
+
+  const handleMenuDelete = (recipe: Recipe) => {
+    setRecipeMenuOpen(null);
+    confirmAndRun(`"${recipe.title}" wirklich löschen?`, async () => {
+      await deleteRecipe(recipe.id);
+      loadData();
+    });
+  };
+
+  const handleMenuMark = (id: string) => {
+    setRecipeMenuOpen(null);
+    toggleRecipeSelect(id);
+  };
+
+  const MASONRY_RATIOS = [0.9, 1.15, 1.0, 1.25, 0.85, 1.1];
+  const getMasonryAspectRatio = (index: number) => MASONRY_RATIOS[index % MASONRY_RATIOS.length];
+
+  const renderMasonryCard = (item: Recipe, index: number) => {
+    const img = item.imageUrl || item.thumbnail;
+    const timeBadge = item.cookTime || item.prepTime;
+    const selected = isRecipeSelected(item.id);
+    const menuVisible = recipeMenuOpen === item.id;
+    const aspectRatio = getMasonryAspectRatio(index);
+
+    const onCardPress = () => {
+      if (menuVisible || recipeMenuOpen) {
+        setRecipeMenuOpen(null);
+        return;
+      }
+      if (isSelecting) {
+        toggleRecipeSelect(item.id);
+      } else {
+        router.push(`/recipe/${item.id}`);
+      }
+    };
+
+    const metaParts = [
+      timeBadge,
+      item.nutritionPerServing?.kcal ? `${item.nutritionPerServing.kcal} kcal` : null,
+    ].filter(Boolean);
+
+    return (
+      <Pressable
+        key={item.id}
+        style={[styles.masonryCard, selected && styles.masonryCardSelected]}
+        onPress={onCardPress}
+      >
+        <View style={[styles.masonryImageWrap, { aspectRatio }]}>
+          {img ? (
+            <Image source={{ uri: img }} style={styles.masonryImage} />
+          ) : (
+            <View style={[styles.masonryImage, styles.masonryImagePlaceholder]} />
+          )}
+          {!isSelecting && (
+            <Pressable
+              style={styles.masonryMenuBtn}
+              onPress={() => setRecipeMenuOpen(menuVisible ? null : item.id)}
+              hitSlop={8}
+            >
+              <View style={styles.masonryMenuDot} />
+              <View style={styles.masonryMenuDot} />
+              <View style={styles.masonryMenuDot} />
+            </Pressable>
+          )}
+          {selected && (
+            <View style={styles.masonryCheck}>
+              <Text style={styles.masonryCheckText}>✓</Text>
+            </View>
+          )}
+        </View>
+        {menuVisible && (
+          <View style={styles.masonryMenuPopup}>
+            <Pressable style={styles.masonryMenuItem} onPress={() => handleMenuMark(item.id)}>
+              <Text style={styles.masonryMenuItemText}>Markieren</Text>
+            </Pressable>
+            <View style={styles.masonryMenuDivider} />
+            <Pressable style={styles.masonryMenuItem} onPress={() => handleMenuDelete(item)}>
+              <Text style={[styles.masonryMenuItemText, styles.masonryMenuItemDanger]}>Löschen</Text>
+            </Pressable>
+          </View>
+        )}
+        <View style={styles.masonryInfo}>
+          <Text style={styles.masonryTitle} numberOfLines={2}>{item.title}</Text>
+          {metaParts.length > 0 && (
+            <Text style={styles.masonryMeta}>{metaParts.join(" · ")}</Text>
+          )}
+          <View style={styles.masonryStarsWrap}>{renderStars(item)}</View>
+        </View>
+      </Pressable>
+    );
+  };
+
   const getRecipesForCookbook = (name: string) => {
     return recipes.filter((r) => r.cookbook === name || (!r.cookbook && name === "Meine Rezepte"));
   };
@@ -316,69 +471,60 @@ export default function SavedScreen() {
   // ============ REZEPT-LISTE ============
   if (selectedCookbook) {
     const categoryRecipes = getRecipesForCookbook(selectedCookbook);
+    const leftRecipes = categoryRecipes.filter((_, i) => i % 2 === 0);
+    const rightRecipes = categoryRecipes.filter((_, i) => i % 2 === 1);
     return (
       <View style={styles.container}>
         <View style={styles.detailHeader}>
-          <Pressable onPress={() => setSelectedCookbook(null)} style={styles.backButton}>
+          <Pressable
+            onPress={() => {
+              setSelectedRecipeIds([]);
+              setRecipeMenuOpen(null);
+              setSelectedCookbook(null);
+            }}
+            style={styles.backButton}
+          >
             <Text style={styles.backText}>‹ Kochbuch</Text>
           </Pressable>
           <Text style={styles.detailTitle}>{selectedCookbook}</Text>
           <Text style={styles.detailCount}>{categoryRecipes.length} {categoryRecipes.length === 1 ? "Rezept" : "Rezepte"}</Text>
         </View>
-        <FlatList
-          data={categoryRecipes}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.recipeList}
-          ListEmptyComponent={
+        <ScrollView
+          contentContainerStyle={styles.masonryScrollContent}
+          onScrollBeginDrag={() => recipeMenuOpen && setRecipeMenuOpen(null)}
+        >
+          {categoryRecipes.length === 0 ? (
             <View style={styles.emptyList}>
               <Text style={styles.emptyListEmoji}>📖</Text>
               <Text style={styles.emptyListText}>Keine Rezepte in dieser Kategorie</Text>
             </View>
-          }
-          renderItem={({ item }) => {
-            const img = item.imageUrl || item.thumbnail;
-            return (
-              <View style={styles.recipeCard}>
-                <Pressable style={styles.recipeCardMain} onPress={() => router.push(`/recipe/${item.id}`)}>
-                  {img && <Image source={{ uri: img }} style={styles.recipeThumb} />}
-                  <View style={styles.recipeCardBody}>
-                    <Text style={styles.recipeTitle}>{item.title}</Text>
-                    <Text style={styles.recipeDesc} numberOfLines={1}>{item.description}</Text>
-                    <View style={styles.recipeMeta}>
-                      <Text style={styles.recipeMetaText}>{item.servings} Portionen</Text>
-                      <Text style={styles.recipeMetaDot}>·</Text>
-                      <Text style={styles.recipeMetaText}>{item.cookTime}</Text>
-                      {item.nutritionPerServing?.kcal ? (
-                        <><Text style={styles.recipeMetaDot}>·</Text><Text style={styles.recipeMetaText}>{item.nutritionPerServing.kcal} kcal</Text></>
-                      ) : null}
-                    </View>
-                    {renderStars(item)}
-                  </View>
-                </Pressable>
-                <View style={styles.actionRow}>
-                  <Pressable style={styles.actionButton} onPress={() => router.push(`/recipe/${item.id}`)}>
-                    <Text style={styles.actionIcon}>✎</Text>
-                    <Text style={styles.actionLabel}>Bearbeiten</Text>
-                  </Pressable>
-                  <Pressable style={styles.actionButton} onPress={() => {
-                    if (item.sourceUrl) {
-                      if (Platform.OS === "web") {
-                        window.open(item.sourceUrl, "_blank");
-                      }
-                    }
-                  }}>
-                    <Text style={styles.actionIcon}>▶</Text>
-                    <Text style={styles.actionLabel}>Original</Text>
-                  </Pressable>
-                  <Pressable style={[styles.actionButton, styles.actionButtonDanger]} onPress={() => handleDelete(item)}>
-                    <Text style={[styles.actionIcon, styles.actionIconDanger]}>✕</Text>
-                    <Text style={[styles.actionLabel, styles.actionLabelDanger]}>Löschen</Text>
-                  </Pressable>
-                </View>
+          ) : (
+            <View style={styles.masonryWrap}>
+              <View style={styles.masonryCol}>
+                {leftRecipes.map((item, i) => renderMasonryCard(item, i * 2))}
               </View>
-            );
-          }}
-        />
+              <View style={styles.masonryCol}>
+                {rightRecipes.map((item, i) => renderMasonryCard(item, i * 2 + 1))}
+              </View>
+            </View>
+          )}
+        </ScrollView>
+
+        {isSelecting && (
+          <View style={styles.selectionBar}>
+            <Text style={styles.selectionCounter}>
+              {selectedRecipeIds.length} markiert
+            </Text>
+            <View style={styles.selectionActions}>
+              <Pressable style={styles.selectionBtn} onPress={cancelSelection}>
+                <Text style={styles.selectionBtnText}>Abbrechen</Text>
+              </Pressable>
+              <Pressable style={[styles.selectionBtn, styles.selectionBtnDanger]} onPress={handleBulkDelete}>
+                <Text style={[styles.selectionBtnText, styles.selectionBtnTextDanger]}>Alle löschen</Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
       </View>
     );
   }
@@ -471,11 +617,15 @@ export default function SavedScreen() {
 
         <Text style={styles.sectionLabel}>Weitere Kochbücher</Text>
         <ScrollView
+          ref={sliderRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.sliderContent}
           decelerationRate="fast"
           snapToInterval={168}
+          onMomentumScrollEnd={(e) => {
+            sliderOffset.current = e.nativeEvent.contentOffset.x;
+          }}
         >
           {[...FEATURED_BOOKS, ...FEATURED_BOOKS, ...FEATURED_BOOKS].map((book, i) => (
             <View key={i} style={styles.sliderCard}>
@@ -896,7 +1046,144 @@ const styles = StyleSheet.create({
   detailTitle: { fontSize: 22, fontWeight: "800", color: "#fff", letterSpacing: -0.3 },
   detailCount: { fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 3 },
 
-  // === REZEPT-KARTEN ===
+  // === MASONRY (Layout 4) ===
+  masonryScrollContent: { padding: 12, paddingBottom: 90 },
+  masonryWrap: { flexDirection: "row", gap: 10 },
+  masonryCol: { flex: 1, gap: 10 },
+  masonryCard: {
+    borderRadius: 14,
+    overflow: "hidden",
+    backgroundColor: "rgba(255,255,255,0.6)",
+    borderWidth: 0.5,
+    borderColor: "rgba(255,255,255,0.85)",
+    cursor: "pointer" as any,
+    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+  } as any,
+  masonryCardSelected: {
+    borderWidth: 2,
+    borderColor: "#5A9A4E",
+  },
+  masonryImageWrap: {
+    position: "relative",
+    width: "100%",
+    overflow: "hidden",
+    backgroundColor: "rgba(42,56,37,0.08)",
+  },
+  masonryImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  } as any,
+  masonryImagePlaceholder: {
+    backgroundColor: "rgba(42,56,37,0.15)",
+  },
+  masonryMenuBtn: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2.5,
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    cursor: "pointer" as any,
+  } as any,
+  masonryMenuDot: {
+    width: 3.5,
+    height: 3.5,
+    borderRadius: 2,
+    backgroundColor: "#fff",
+  },
+  masonryMenuPopup: {
+    position: "absolute",
+    top: 40,
+    left: 8,
+    backgroundColor: "rgba(255,255,255,0.98)",
+    borderRadius: 12,
+    minWidth: 130,
+    paddingVertical: 4,
+    boxShadow: "0 4px 20px rgba(0,0,0,0.18)",
+    zIndex: 50,
+    elevation: 8,
+  } as any,
+  masonryMenuItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    cursor: "pointer" as any,
+  } as any,
+  masonryMenuItemText: { fontSize: 13, color: "#2A3825", fontWeight: "600" },
+  masonryMenuItemDanger: { color: "#9B4444" },
+  masonryMenuDivider: { height: 0.5, backgroundColor: "rgba(42,56,37,0.1)", marginHorizontal: 10 },
+  masonryCheck: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#5A9A4E",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#fff",
+  },
+  masonryCheckText: { color: "#fff", fontSize: 14, fontWeight: "800", lineHeight: 16 },
+  masonryInfo: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  masonryTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#2A3825",
+    lineHeight: 16,
+    letterSpacing: -0.1,
+  },
+  masonryMeta: {
+    fontSize: 10,
+    color: "#5A9A4E",
+    fontWeight: "600",
+    marginTop: 3,
+  },
+  masonryStarsWrap: {
+    marginTop: 4,
+  },
+
+  // === Bottom-Bar (Markier-Modus) ===
+  selectionBar: {
+    position: "absolute",
+    bottom: 16,
+    left: 14,
+    right: 14,
+    backgroundColor: "rgba(42,56,37,0.97)",
+    borderRadius: 18,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 0.5,
+    borderColor: "rgba(255,255,255,0.1)",
+    boxShadow: "0 6px 24px rgba(0,0,0,0.25)",
+  } as any,
+  selectionCounter: { color: "#fff", fontSize: 14, fontWeight: "700" },
+  selectionActions: { flexDirection: "row", gap: 8 },
+  selectionBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    cursor: "pointer" as any,
+  } as any,
+  selectionBtnText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+  selectionBtnDanger: { backgroundColor: "#C15454" },
+  selectionBtnTextDanger: { color: "#fff" },
+
+  // === REZEPT-KARTEN (alt, ungenutzt) ===
   recipeList: { padding: 16 },
   recipeCard: {
     backgroundColor: W(0.55), borderRadius: 20, marginBottom: 12, overflow: "hidden",

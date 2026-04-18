@@ -6,13 +6,37 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  TextInput,
   Linking,
   Share,
   Image,
+  Pressable,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { getRecipes } from "../../services/storage";
+import { getRecipes, updateRecipe } from "../../services/storage";
+import { recalculateNutrition } from "../../services/api";
 import { Recipe, Ingredient, Macros } from "../../types/recipe";
+
+const ADD_UNIT_OPTIONS = ["g", "ml"];
+
+function UnitPicker({ value, onChange }: { value: string | null; onChange: (v: string | null) => void }) {
+  return (
+    <View style={{ flexDirection: "row", gap: 4 }}>
+      {ADD_UNIT_OPTIONS.map((unit) => (
+        <Pressable
+          key={unit}
+          style={{
+            paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8,
+            backgroundColor: value === unit ? "#7BAA6E" : "#E2EBD8",
+          }}
+          onPress={() => onChange(unit)}
+        >
+          <Text style={{ fontSize: 13, fontWeight: "bold", color: value === unit ? "#fff" : "#6E8868" }}>{unit}</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
 
 function formatIngredient(ing: Ingredient, scale: number): string {
   if (ing.amount != null) {
@@ -33,6 +57,12 @@ export default function RecipeDetailScreen() {
   const [currentServings, setCurrentServings] = useState(0);
   const [originalServings, setOriginalServings] = useState(0);
   const [showMicro, setShowMicro] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
+  const [newIngName, setNewIngName] = useState("");
+  const [newIngAmount, setNewIngAmount] = useState("");
+  const [newIngUnit, setNewIngUnit] = useState("");
+  const [editError, setEditError] = useState("");
 
   useEffect(() => {
     loadRecipe();
@@ -50,6 +80,62 @@ export default function RecipeDetailScreen() {
   };
 
   const scale = originalServings > 0 ? currentServings / originalServings : 1;
+
+  const handleDeleteIngredient = (index: number) => {
+    if (!recipe) return;
+    const updated = [...recipe.ingredients];
+    updated.splice(index, 1);
+    setRecipe({ ...recipe, ingredients: updated });
+  };
+
+  const handleUpdateIngredient = (index: number, field: string, value: string) => {
+    if (!recipe) return;
+    const updated = [...recipe.ingredients];
+    if (field === "amount") {
+      updated[index] = { ...updated[index], amount: value ? parseFloat(value) || null : null };
+    } else if (field === "unit") {
+      updated[index] = { ...updated[index], unit: value || null };
+    } else if (field === "name") {
+      updated[index] = { ...updated[index], name: value };
+    }
+    setRecipe({ ...recipe, ingredients: updated });
+  };
+
+  const handleAddIngredient = () => {
+    if (!recipe || !newIngName.trim()) return;
+    const newIng: Ingredient = {
+      amount: newIngAmount ? parseFloat(newIngAmount) : null,
+      unit: newIngUnit || null,
+      name: newIngName.trim(),
+      search: newIngName.trim(),
+    };
+    setRecipe({ ...recipe, ingredients: [...recipe.ingredients, newIng] });
+    setNewIngName("");
+    setNewIngAmount("");
+    setNewIngUnit("");
+  };
+
+  const handleSaveChanges = async () => {
+    if (!recipe) return;
+    setRecalculating(true);
+    setEditError("");
+    try {
+      const result = await recalculateNutrition(recipe.ingredients, originalServings);
+      const updated: Recipe = {
+        ...recipe,
+        nutritionPerServing: result.nutritionPerServing,
+        nutritionPer100g: result.nutritionPer100g,
+        micronutrients: result.micronutrients,
+      };
+      await updateRecipe(updated);
+      setRecipe(updated);
+      setEditMode(false);
+    } catch {
+      setEditError("Nährwerte konnten nicht neu berechnet werden.");
+    } finally {
+      setRecalculating(false);
+    }
+  };
 
   const handleShare = async () => {
     if (!recipe) return;
@@ -134,15 +220,86 @@ export default function RecipeDetailScreen() {
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Zutaten</Text>
-      <View style={styles.ingredientsList}>
-        {recipe.ingredients.map((ing, i) => (
-          <View key={i} style={styles.ingredientRow}>
-            <View style={styles.bullet} />
-            <Text style={styles.ingredientText}>{formatIngredient(ing, scale)}</Text>
-          </View>
-        ))}
+      <View style={styles.ingredientsHeader}>
+        <Text style={styles.sectionTitle}>Zutaten</Text>
+        <TouchableOpacity onPress={() => setEditMode(!editMode)} style={styles.editIconBtn}>
+          <Text style={styles.editIconText}>{editMode ? "✓" : "✎"}</Text>
+        </TouchableOpacity>
       </View>
+      {editMode ? (
+        <View style={styles.ingredientsList}>
+          {recipe.ingredients.map((ing, i) => (
+            <View key={i} style={styles.editRow}>
+              <TextInput
+                style={styles.editAmount}
+                value={ing.amount != null ? String(ing.amount) : ""}
+                onChangeText={(v) => handleUpdateIngredient(i, "amount", v)}
+                keyboardType="numeric"
+                placeholder="-"
+                placeholderTextColor="#C2D0BC"
+              />
+              <Text style={styles.editUnitLabel}>{ing.unit || ""}</Text>
+              <Text style={styles.editNameLabel} numberOfLines={1}>{ing.name}</Text>
+              <TouchableOpacity onPress={() => handleDeleteIngredient(i)} style={styles.deleteBtn}>
+                <Text style={styles.deleteBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          <View style={styles.addSection}>
+            <Text style={styles.addLabel}>Zutat hinzufügen</Text>
+            <Text style={styles.addWarning}>Neue Zutaten können die Nährwerte verfälschen (Daten aus externer DB).</Text>
+            <View style={styles.addRow}>
+              <TextInput
+                style={styles.editAmount}
+                value={newIngAmount}
+                onChangeText={setNewIngAmount}
+                keyboardType="numeric"
+                placeholder="100"
+                placeholderTextColor="#C2D0BC"
+              />
+              <UnitPicker value={newIngUnit || null} onChange={(v) => setNewIngUnit(v || "")} />
+              <TextInput
+                style={styles.editName}
+                value={newIngName}
+                onChangeText={setNewIngName}
+                placeholder="z.B. Shrimps"
+                placeholderTextColor="#C2D0BC"
+              />
+              <TouchableOpacity onPress={handleAddIngredient} style={styles.addBtn}>
+                <Text style={styles.addBtnText}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {editError ? (
+            <View style={styles.editErrorBox}>
+              <Text style={styles.editErrorText}>{editError}</Text>
+            </View>
+          ) : null}
+
+          <TouchableOpacity
+            style={[styles.recalcBtn, recalculating && { opacity: 0.5 }]}
+            onPress={handleSaveChanges}
+            disabled={recalculating}
+          >
+            {recalculating ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.recalcBtnText}>Speichern & Nährwerte neu berechnen</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.ingredientsList}>
+          {recipe.ingredients.map((ing, i) => (
+            <View key={i} style={styles.ingredientRow}>
+              <View style={styles.bullet} />
+              <Text style={styles.ingredientText}>{formatIngredient(ing, scale)}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       <Text style={styles.sectionTitle}>Zubereitung</Text>
       {recipe.steps.map((step, i) => (
@@ -167,6 +324,26 @@ export default function RecipeDetailScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {(recipe.tags && recipe.tags.length > 0) || recipe.notes ? (
+        <View style={styles.extrasSection}>
+          {recipe.tags && recipe.tags.length > 0 && (
+            <View style={styles.tagsRow}>
+              {recipe.tags.map((t) => (
+                <View key={t} style={styles.tagPill}>
+                  <Text style={styles.tagPillText}>{t}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+          {recipe.notes ? (
+            <View style={styles.notesBox}>
+              <Text style={styles.notesLabel}>Notiz</Text>
+              <Text style={styles.notesText}>{recipe.notes}</Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
 
       {recipe.nutritionPerServing && (
         <View style={styles.nutritionSection}>
@@ -224,6 +401,7 @@ export default function RecipeDetailScreen() {
           </View>
         </View>
       )}
+
     </ScrollView>
   );
 }
@@ -295,11 +473,31 @@ const styles = StyleSheet.create({
   stepText: { flex: 1, fontSize: 14, color: "#2A3825", lineHeight: 21 },
 
   actions: { flexDirection: "row", gap: 10, marginTop: 24 },
+  editButton: {
+    flex: 1, backgroundColor: "#7BAA6E", borderRadius: 18, padding: 15, alignItems: "center",
+    boxShadow: "0 4px 20px rgba(122,170,110,0.3)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.15)",
+  } as any,
+  editButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
   shareButton: {
     flex: 1, backgroundColor: G, borderRadius: 18, padding: 15, alignItems: "center",
     boxShadow: "0 4px 20px rgba(42,56,37,0.18)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   } as any,
   shareButtonText: { color: "#fff", fontWeight: "600", fontSize: 14 },
+  extrasSection: { marginTop: 22 },
+  tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 14 },
+  tagPill: {
+    backgroundColor: "rgba(122,170,110,0.15)", borderRadius: 14,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderWidth: 0.5, borderColor: "rgba(122,170,110,0.3)",
+  },
+  tagPillText: { fontSize: 12, fontWeight: "700", color: "#5A9A4E" },
+  notesBox: {
+    backgroundColor: W(0.55), borderRadius: 16, padding: 14,
+    borderWidth: 0.5, borderColor: W(0.75),
+    boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+  } as any,
+  notesLabel: { fontSize: 11, fontWeight: "700", color: "#5A7A52", letterSpacing: 0.3, textTransform: "uppercase" as any, marginBottom: 6 },
+  notesText: { fontSize: 14, color: "#2A3825", lineHeight: 20 },
   sourceButton: {
     flex: 1, backgroundColor: W(0.5), borderRadius: 18, padding: 15, alignItems: "center",
     borderWidth: 0.5, borderColor: W(0.7),
@@ -323,4 +521,53 @@ const styles = StyleSheet.create({
   allergenRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   allergenBadge: { backgroundColor: "rgba(155,68,68,0.06)", borderRadius: 10, paddingHorizontal: 11, paddingVertical: 5, borderWidth: 0.5, borderColor: "rgba(155,68,68,0.1)" },
   allergenText: { fontSize: 12, fontWeight: "600", color: "#9B4444" },
+
+  ingredientsHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  editIconBtn: {
+    width: 34, height: 34, borderRadius: 17, backgroundColor: W(0.5),
+    alignItems: "center", justifyContent: "center", marginBottom: 8,
+    borderWidth: 0.5, borderColor: W(0.8),
+  },
+  editIconText: { fontSize: 16, color: "#5A9A4E" },
+  editRow: { flexDirection: "row", alignItems: "center", marginBottom: 8, gap: 6 },
+  editAmount: {
+    width: 52, backgroundColor: W(0.55), borderRadius: 10, padding: 8, fontSize: 13,
+    borderWidth: 0.5, borderColor: W(0.7), textAlign: "center" as any,
+  },
+  editUnitLabel: { width: 30, fontSize: 13, color: "#98AE92", textAlign: "center" as any },
+  editNameLabel: { flex: 1, fontSize: 13, color: "#2A3825" },
+  editName: {
+    flex: 1, backgroundColor: W(0.55), borderRadius: 10, padding: 8, fontSize: 13,
+    borderWidth: 0.5, borderColor: W(0.7),
+  },
+  deleteBtn: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: "rgba(155,68,68,0.08)",
+    borderWidth: 0.5, borderColor: "rgba(155,68,68,0.15)",
+    alignItems: "center", justifyContent: "center",
+  },
+  deleteBtnText: { color: "#9B4444", fontWeight: "700", fontSize: 11 },
+  addSection: { marginTop: 14, paddingTop: 14, borderTopWidth: 0.5, borderTopColor: "rgba(123,170,110,0.15)" },
+  addLabel: { fontSize: 13, fontWeight: "700", color: "#2A3825", marginBottom: 4 },
+  addWarning: { fontSize: 10, color: "#9B4444", marginBottom: 10, lineHeight: 14 },
+  addRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 12, marginTop: 4 },
+  addBtn: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: "rgba(122,170,110,0.1)",
+    borderWidth: 0.5, borderColor: "rgba(122,170,110,0.2)",
+    alignItems: "center", justifyContent: "center",
+  },
+  addBtnText: { color: "#5A9A4E", fontWeight: "700", fontSize: 16, lineHeight: 18 },
+  recalcBtn: {
+    backgroundColor: G, borderRadius: 14, padding: 13, alignItems: "center",
+    marginTop: 10, marginBottom: 4,
+    boxShadow: "0 3px 12px rgba(42,56,37,0.18)",
+    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
+  } as any,
+  recalcBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
+  editErrorBox: {
+    backgroundColor: "rgba(155,68,68,0.08)", borderRadius: 12, padding: 10, marginTop: 8,
+    borderWidth: 0.5, borderColor: "rgba(155,68,68,0.15)",
+  },
+  editErrorText: { color: "#9B4444", fontSize: 12 },
 });

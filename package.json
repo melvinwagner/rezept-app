@@ -1,12 +1,14 @@
 {
   "name": "rezept-app",
-  "version": "1.4.0",
+  "version": "1.6.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "predev": "lsof -ti:3001,8081 | xargs kill -9 2>/dev/null; exit 0",
+    "dev": "concurrently -k --raw \"node server.js\" \"expo start\""
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
@@ -15,6 +17,8 @@
     "dotenv": "^17.4.2",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
+    "expo-image-manipulator": "~14.0.8",
+    "expo-image-picker": "~17.0.10",
     "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.11",
     "expo-router": "~6.0.23",
@@ -33,6 +37,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "concurrently": "^9.2.1",
     "typescript": "~5.9.2"
   },
   "private": true
