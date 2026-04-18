@@ -9,11 +9,13 @@ import {
   ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import { setApiKey, getApiKey } from "../../services/api";
 
 const API_KEY_STORAGE = "claude_api_key";
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const [key, setKey] = useState("");
   const [saved, setSaved] = useState(false);
   const [syncStatus, setSyncStatus] = useState("");
@@ -184,6 +186,45 @@ export default function SettingsScreen() {
     }
   };
 
+  if (!syncUnlocked) {
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Einstellungen geschützt</Text>
+          <Text style={styles.cardDesc}>
+            Bitte Passwort eingeben, um auf die Einstellungen zuzugreifen.
+          </Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Passwort eingeben..."
+            placeholderTextColor="#A8B8A2"
+            value={syncPassword}
+            onChangeText={setSyncPassword}
+            secureTextEntry
+            onSubmitEditing={() => {
+              if (syncPassword === "2026") {
+                setSyncUnlocked(true);
+                setSyncStatus("");
+              } else setSyncStatus("Falsches Passwort.");
+            }}
+          />
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={() => {
+              if (syncPassword === "2026") {
+                setSyncUnlocked(true);
+                setSyncStatus("");
+              } else setSyncStatus("Falsches Passwort.");
+            }}
+          >
+            <Text style={styles.saveButtonText}>Entsperren</Text>
+          </TouchableOpacity>
+          {syncStatus ? <Text style={styles.syncStatus}>{syncStatus}</Text> : null}
+        </View>
+      </ScrollView>
+    );
+  }
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* API Key */}
@@ -230,45 +271,19 @@ export default function SettingsScreen() {
           Dein Partner kann diese Datei importieren um den gleichen Stand zu haben.
         </Text>
 
-        {!syncUnlocked ? (
-          <View>
-            <TextInput
-              style={styles.input}
-              placeholder="Passwort eingeben..."
-              placeholderTextColor="#A8B8A2"
-              value={syncPassword}
-              onChangeText={setSyncPassword}
-              secureTextEntry
-              onSubmitEditing={() => {
-                if (syncPassword === "2026") setSyncUnlocked(true);
-                else setSyncStatus("Falsches Passwort.");
-              }}
-            />
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={() => {
-                if (syncPassword === "2026") setSyncUnlocked(true);
-                else setSyncStatus("Falsches Passwort.");
-              }}
-            >
-              <Text style={styles.saveButtonText}>Entsperren</Text>
+        <View>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={styles.exportButton} onPress={handleExport}>
+              <Text style={styles.exportButtonText}>Exportieren</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.importButton} onPress={handleImport}>
+              <Text style={styles.importButtonText}>Importieren</Text>
             </TouchableOpacity>
           </View>
-        ) : (
-          <View>
-            <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.exportButton} onPress={handleExport}>
-                <Text style={styles.exportButtonText}>Exportieren</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.importButton} onPress={handleImport}>
-                <Text style={styles.importButtonText}>Importieren</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-              <Text style={styles.shareButtonText}>Teilen</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+          <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+            <Text style={styles.shareButtonText}>Teilen</Text>
+          </TouchableOpacity>
+        </View>
 
         {syncStatus ? (
           <Text style={styles.syncStatus}>{syncStatus}</Text>
@@ -286,7 +301,23 @@ export default function SettingsScreen() {
         </Text>
       </View>
 
-      <Text style={styles.version}>Rezept App v1.0.0</Text>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Onboarding neu starten</Text>
+        <Text style={styles.cardDesc}>
+          Zeigt dir wieder den Willkommens- und Setup-Flow.
+        </Text>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={async () => {
+            await AsyncStorage.removeItem("onboarding_completed");
+            router.replace("/onboarding");
+          }}
+        >
+          <Text style={styles.saveButtonText}>Onboarding öffnen</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.version}>Rezept App v1.6.0</Text>
     </ScrollView>
   );
 }

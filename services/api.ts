@@ -1,7 +1,9 @@
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 import { Recipe, Ingredient, Macros } from "../types/recipe";
 
-const BASE_URL = "http://localhost:3001";
+const BASE_URL =
+  (Constants.expoConfig?.extra?.apiUrl as string) || "http://localhost:3001";
 const PROXY_URL = `${BASE_URL}/api/generate-recipe`;
 
 function parseCreatorFromUrl(url: string): {
@@ -39,14 +41,13 @@ export function getApiKey(): string {
 }
 
 export async function generateRecipe(videoUrl: string): Promise<Recipe> {
-  if (!API_KEY) {
-    throw new Error("Bitte zuerst den API Key in den Einstellungen setzen.");
-  }
+  const body: Record<string, string> = { videoUrl };
+  if (API_KEY) body.apiKey = API_KEY;
 
   const response = await fetch(PROXY_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ videoUrl, apiKey: API_KEY }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -70,6 +71,7 @@ export async function generateRecipe(videoUrl: string): Promise<Recipe> {
     nutritionPer100g: parsed.nutritionPer100g,
     micronutrients: parsed.micronutrients || {},
     allergens: parsed.allergens || [],
+    tags: parsed.tags || [],
     thumbnail: parsed.thumbnail || undefined,
     imageUrl: parsed.imageUrl || undefined,
     sourceUrl: videoUrl,

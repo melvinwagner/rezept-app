@@ -1,14 +1,28 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 const { execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
 const app = express();
+app.set("trust proxy", 1); // Railway/Proxy: liefert client-IP im X-Forwarded-For
 app.use(cors());
 app.use(express.json());
+
+// Rate-Limit: 100 Rezept-Generierungen pro IP pro 24h.
+const recipeLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error:
+      "Tageslimit erreicht (100 Rezepte/Tag). Probier es morgen wieder.",
+  },
+});
 
 const nodemailer = require("nodemailer");
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
@@ -477,11 +491,12 @@ function parseVTT(vttContent) {
   return textLines.join(" ");
 }
 
-app.post("/api/generate-recipe", async (req, res) => {
-  const { videoUrl, apiKey } = req.body;
+app.post("/api/generate-recipe", recipeLimiter, async (req, res) => {
+  const { videoUrl } = req.body;
+  const apiKey = req.body.apiKey || process.env.CLAUDE_API_KEY;
 
   if (!apiKey) {
-    return res.status(400).json({ error: "API Key fehlt." });
+    return res.status(500).json({ error: "Server ist nicht konfiguriert (kein Claude Key)." });
   }
   if (!videoUrl) {
     return res.status(400).json({ error: "Video URL fehlt." });
@@ -570,7 +585,8 @@ Antworte AUSSCHLIESSLICH mit validem JSON im folgenden Format, ohne Markdown-Cod
   "cookTime": "z.B. 8 Min",
   "ingredients": [{"amount": 200, "unit": "g", "name": "Zutat 1", "search": "ingredient 1 english"}, {"amount": 3, "unit": "EL", "name": "Zutat 2", "search": "ingredient 2 english"}, {"amount": null, "unit": null, "name": "Salz nach Geschmack", "search": "salt"}],
   "steps": ["Schritt 1 detailliert", "Schritt 2 detailliert"],
-  "allergens": ["Gluten", "Milch"]
+  "allergens": ["Gluten", "Milch"],
+  "tags": ["vegetarisch"]
 }
 
 HINWEIS zu Zutaten:
@@ -578,7 +594,14 @@ HINWEIS zu Zutaten:
 
 HINWEIS zu Allergenen:
 - allergens: Liste ALLE enthaltenen Allergene auf (z.B. Gluten, Milch, Ei, Soja, Nüsse, Sellerie, Senf, Sesam, Lupine, Weichtiere, Krebstiere, Fisch, Erdnüsse, Schwefeldioxid).
-- Prüfe jede Zutat sorgfältig auf bekannte Allergene.`;
+- Prüfe jede Zutat sorgfältig auf bekannte Allergene.
+
+HINWEIS zu Tags:
+- tags: Array mit MAXIMAL einem der folgenden Werte, abhängig von den Zutaten:
+  - "vegan" — KEIN tierisches Produkt (kein Fleisch, Fisch, Eier, Milchprodukte, Honig, Gelatine).
+  - "vegetarisch" — kein Fleisch und kein Fisch, aber Milchprodukte und/oder Eier sind erlaubt.
+  - Leeres Array [] wenn das Rezept Fleisch oder Fisch enthält.
+- Wichtig: Prüfe jede Zutat einzeln. Ein einziges tierisches Produkt disqualifiziert "vegan". Fleisch oder Fisch disqualifizieren auch "vegetarisch".`;
 
     const response = await fetch(CLAUDE_API_URL, {
       method: "POST",
@@ -727,7 +750,7 @@ app.post("/api/send-sync", async (req, res) => {
   }
 });
 
-const PORT = 3001;
-app.listen(PORT, () => {
+const PORT = Number(process.env.PORT) || 3001;
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Recipe API server running on http://localhost:${PORT}`);
 });

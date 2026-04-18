@@ -25,6 +25,7 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { generateRecipe, setApiKey, getApiKey, recalculateNutrition } from "../../services/api";
 import { saveRecipe, getCookbooks, addCookbook } from "../../services/storage";
 import { Recipe, Ingredient, Macros, ImageTransform } from "../../types/recipe";
+import { gemueseOfToday, tippOfToday, wusstestOfToday, factOfToday } from "../../content/daily";
 
 const ADD_UNIT_OPTIONS = ["g", "ml"];
 
@@ -66,65 +67,6 @@ async function applyImageTransform(uri: string, transform: ImageTransform): Prom
   return result.uri;
 }
 
-const WIDGET_DATA = [
-  { type: "wusstest", emoji: "✨", label: "Wusstest du?", text: "Zimt kann den Blutzuckerspiegel um bis zu 29% senken. Perfekt im Porridge oder Bananenbrot!" },
-  { type: "tipp", emoji: "💡", label: "Tipp des Tages", text: "Reife Bananen mit braunen Flecken sind süßer — perfekt für Bananenbrot ohne extra Zucker!" },
-  { type: "wusstest", emoji: "❓", label: "Wusstest du?", text: "Ein Ei enthält alle essentiellen Aminosäuren und gilt als Referenz-Protein in der Ernährungswissenschaft." },
-  { type: "tipp", emoji: "🔥", label: "Tipp des Tages", text: "Knoblauch erst 10 Min nach dem Schneiden erhitzen — so bildet sich das gesunde Allicin." },
-  { type: "wusstest", emoji: "✨", label: "Wusstest du?", text: "Olivenöl verliert beim starken Erhitzen seine gesunden Eigenschaften. Zum Braten besser Rapsöl nehmen." },
-  { type: "tipp", emoji: "💡", label: "Tipp des Tages", text: "Reis nach dem Kochen abkühlen lassen — das senkt den glykämischen Index um bis zu 50%." },
-  {
-    type: "fact",
-    emoji: "📊",
-    label: "Food Fact",
-    number: "73%",
-    text: "der Deutschen kochen mindestens 3x pro Woche selbst.",
-  },
-  {
-    type: "fact",
-    emoji: "📊",
-    label: "Food Fact",
-    number: "2.5 Mrd",
-    text: "Rezeptvideos werden monatlich auf TikTok angesehen.",
-  },
-  {
-    type: "fact",
-    emoji: "📊",
-    label: "Food Fact",
-    number: "40%",
-    text: "weniger Lebensmittel werden verschwendet wenn man mit Einkaufsliste kocht.",
-  },
-  {
-    type: "fact",
-    emoji: "📊",
-    label: "Food Fact",
-    number: "8 Min",
-    text: "dauert es durchschnittlich ein Rezept von Hand abzutippen. DAWG macht es in Sekunden.",
-  },
-] as Array<{ type: string; emoji: string; label: string; text: string; number?: string }>;
-
-const GEMUESE_DATA = [
-  { name: "Tomate", text: "Tomaten enthalten Lycopin — ein Antioxidans das beim Erhitzen sogar stärker wird.", img: require("../../assets/gemuese/tomate.jpg") },
-  { name: "Brokkoli", text: "Brokkoli hat mehr Vitamin C als Orangen und ist ein echtes Superfood für das Immunsystem.", img: require("../../assets/gemuese/brokkoli.jpg") },
-  { name: "Karotte", text: "Karotten verbessern tatsächlich die Sehkraft — dank Beta-Carotin, das der Körper in Vitamin A umwandelt.", img: require("../../assets/gemuese/karotte.jpg") },
-  { name: "Paprika", text: "Rote Paprika enthält doppelt so viel Vitamin C wie grüne — sie ist einfach die reifere Version.", img: require("../../assets/gemuese/paprika.jpg") },
-  { name: "Spinat", text: "Spinat verliert beim Kochen 90% seines Volumens. 500g roh werden zu einer kleinen Portion.", img: require("../../assets/gemuese/spinat.jpg") },
-  { name: "Zucchini", text: "Zucchini besteht zu 95% aus Wasser und hat nur 17 kcal pro 100g — perfekt zum Abnehmen.", img: require("../../assets/gemuese/zucchini.jpg") },
-  { name: "Aubergine", text: "Auberginen saugen Öl auf wie ein Schwamm. Tipp: vorher salzen und 20 Min warten.", img: require("../../assets/gemuese/aubergine.jpg") },
-  { name: "Blumenkohl", text: "Blumenkohl kann als Low-Carb Ersatz für Reis, Pizza-Boden und sogar Kartoffelpüree dienen.", img: require("../../assets/gemuese/blumenkohl.jpg") },
-  { name: "Gurke", text: "Gurken bestehen zu 96% aus Wasser — das wasserreichste Gemüse überhaupt.", img: require("../../assets/gemuese/gurke.jpg") },
-  { name: "Süßkartoffel", text: "Süßkartoffeln haben einen niedrigeren glykämischen Index als normale Kartoffeln trotz süßem Geschmack.", img: require("../../assets/gemuese/suesskartoffel.jpg") },
-  { name: "Kürbis", text: "Kürbiskerne enthalten mehr Eisen als Rindfleisch — ein unterschätzter Nährstoff-Booster.", img: require("../../assets/gemuese/kuerbis.jpg") },
-  { name: "Avocado", text: "Avocados reifen erst nach der Ernte. Neben eine Banane legen beschleunigt den Prozess.", img: require("../../assets/gemuese/avocado.jpg") },
-  { name: "Spargel", text: "Weißer und grüner Spargel sind dieselbe Pflanze — weißer wächst unter der Erde ohne Licht.", img: require("../../assets/gemuese/spargel.jpg") },
-  { name: "Pilze", text: "Pilze sind die einzige pflanzliche Vitamin-D-Quelle. Kurz in die Sonne legen erhöht den Gehalt.", img: require("../../assets/gemuese/pilze.jpg") },
-  { name: "Zwiebel", text: "Zwiebeln im Kühlschrank schneiden reduziert das Weinen — Kälte verlangsamt die Reizstoff-Freisetzung.", img: require("../../assets/gemuese/zwiebel.jpg") },
-  { name: "Knoblauch", text: "Eine Knoblauchzehe am Tag kann den Blutdruck um bis zu 10% senken.", img: require("../../assets/gemuese/knoblauch.jpg") },
-  { name: "Rosenkohl", text: "Rosenkohl schmeckt nach dem ersten Frost süßer — Kälte wandelt Stärke in Zucker um.", img: require("../../assets/gemuese/rosenkohl.jpg") },
-  { name: "Radieschen", text: "Radieschen wachsen in nur 4 Wochen — das schnellste Gemüse im eigenen Garten.", img: require("../../assets/gemuese/radieschen.jpg") },
-  { name: "Mangold", text: "Mangold ist eng mit der Rübe verwandt und liefert mehr Eisen als die meisten Gemüsesorten.", img: require("../../assets/gemuese/mangold.jpg") },
-  { name: "Grünkohl", text: "Grünkohl hat pro Kalorie mehr Nährstoffe als fast jedes andere Lebensmittel.", img: require("../../assets/gemuese/gruenkohl.jpg") },
-];
 
 function UnitPicker({ value, onChange }: { value: string | null; onChange: (v: string | null) => void }) {
   return (
@@ -153,9 +95,7 @@ function UnitPicker({ value, onChange }: { value: string | null; onChange: (v: s
 }
 
 function GemueseDesTages() {
-  const today = new Date();
-  const dayIndex = (Math.floor((today.getTime() / 86400000)) + 7) % GEMUESE_DATA.length;
-  const g = GEMUESE_DATA[dayIndex];
+  const g = gemueseOfToday();
 
   return (
     <View style={styles.gemueseCard}>
@@ -177,13 +117,22 @@ function GemueseDesTages() {
 
 function WidgetSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, "ja" | "nein">>({});
+  const [answered, setAnswered] = useState<"ja" | "nein" | null>(null);
   const screenWidth = Dimensions.get("window").width;
   const cardWidth = screenWidth - 64;
 
-  const handleAnswer = (index: number, answer: "ja" | "nein") => {
-    setAnswers((prev) => ({ ...prev, [index]: answer }));
-  };
+  const tipp = tippOfToday();
+  const wusstest = wusstestOfToday();
+  const fact = factOfToday();
+
+  const cards: Array<
+    | { type: "tipp" | "wusstest"; emoji: string; label: string; text: string }
+    | { type: "fact"; emoji: string; label: string; text: string; number: string }
+  > = [
+    { type: "tipp", emoji: tipp.emoji, label: tipp.label, text: tipp.text },
+    { type: "wusstest", emoji: wusstest.emoji, label: wusstest.label, text: wusstest.text },
+    { type: "fact", emoji: fact.emoji, label: fact.label, text: fact.text, number: fact.number },
+  ];
 
   return (
     <View style={styles.widgetSection}>
@@ -200,13 +149,13 @@ function WidgetSlider() {
         }}
         scrollEventThrottle={16}
       >
-        {WIDGET_DATA.map((w, i) => (
+        {cards.map((w, i) => (
           <View key={i} style={[styles.widgetCard, { width: cardWidth, marginRight: 10 }]}>
             <View style={styles.widgetHeader}>
               <Text style={styles.widgetEmoji}>{w.emoji}</Text>
               <Text style={styles.widgetLabel}>{w.label}</Text>
             </View>
-            {w.type === "fact" && w.number ? (
+            {w.type === "fact" ? (
               <>
                 <Text style={styles.factNumber}>{w.number}</Text>
                 <Text style={styles.factText}>{w.text}</Text>
@@ -216,22 +165,16 @@ function WidgetSlider() {
             )}
             {w.type === "wusstest" && (
               <View style={styles.widgetActions}>
-                {answers[i] ? (
+                {answered ? (
                   <Text style={styles.widgetAnswered}>
-                    {answers[i] === "ja" ? "👍 Danke!" : "😮 Gut zu wissen!"}
+                    {answered === "ja" ? "👍 Danke!" : "😮 Gut zu wissen!"}
                   </Text>
                 ) : (
                   <>
-                    <Pressable
-                      style={styles.widgetBtnJa}
-                      onPress={() => handleAnswer(i, "ja")}
-                    >
+                    <Pressable style={styles.widgetBtnJa} onPress={() => setAnswered("ja")}>
                       <Text style={styles.widgetBtnJaText}>Ja, wusste ich</Text>
                     </Pressable>
-                    <Pressable
-                      style={styles.widgetBtnNein}
-                      onPress={() => handleAnswer(i, "nein")}
-                    >
+                    <Pressable style={styles.widgetBtnNein} onPress={() => setAnswered("nein")}>
                       <Text style={styles.widgetBtnNeinText}>Nein, spannend!</Text>
                     </Pressable>
                   </>
@@ -242,7 +185,7 @@ function WidgetSlider() {
         ))}
       </ScrollView>
       <View style={styles.widgetDots}>
-        {WIDGET_DATA.map((_, i) => (
+        {cards.map((_, i) => (
           <View key={i} style={[styles.widgetDot, activeIndex === i && styles.widgetDotActive]} />
         ))}
       </View>
@@ -293,11 +236,6 @@ export default function HomeScreen() {
 
     if (!trimmed) {
       setError("Bitte gib eine URL ein.");
-      return;
-    }
-
-    if (!getApiKey()) {
-      setError("Bitte zuerst den API Key in den Einstellungen setzen.");
       return;
     }
 

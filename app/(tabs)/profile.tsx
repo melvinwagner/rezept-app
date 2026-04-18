@@ -8,11 +8,13 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getRecipes, getCookbooks } from "../../services/storage";
 
 export default function ProfileScreen() {
   const [recipeCount, setRecipeCount] = useState(0);
   const [cookbookCount, setCookbookCount] = useState(0);
+  const [userName, setUserName] = useState("Tester");
   const streak = 0;
 
   useFocusEffect(
@@ -20,8 +22,10 @@ export default function ProfileScreen() {
       (async () => {
         const r = await getRecipes();
         const c = await getCookbooks();
+        const n = await AsyncStorage.getItem("user_name");
         setRecipeCount(r.length);
         setCookbookCount(c.length);
+        if (n && n.trim()) setUserName(n.trim());
       })();
     }, [])
   );
@@ -39,7 +43,7 @@ export default function ProfileScreen() {
 
         <View style={styles.brandRow}>
           <View style={styles.brandDash} />
-          <Text style={styles.brand}>Paul's Kitchen</Text>
+          <Text style={styles.brand}>DAWG Kitchen</Text>
           <View style={styles.brandDash} />
         </View>
 
@@ -50,8 +54,7 @@ export default function ProfileScreen() {
         <View style={styles.dividerTop} />
 
         <View style={styles.titleBlock}>
-          <Text style={styles.title}>Paul</Text>
-          <Text style={styles.title}>Schlatte</Text>
+          <Text style={styles.title}>{userName}</Text>
           <Text style={styles.subtitle}>Ein Archiv in Bewegung</Text>
         </View>
 
