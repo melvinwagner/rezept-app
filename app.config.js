@@ -9,7 +9,7 @@ module.exports = ({ config }) => ({
     name: "Rezept App",
     slug: "rezept-app",
     scheme: "rezept-app",
-    version: "1.0.0-alpha.1",
+    version: "1.1.0-alpha.1",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",

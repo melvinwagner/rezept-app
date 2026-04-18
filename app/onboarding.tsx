@@ -14,6 +14,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { Cover, COVER_LAYOUTS, COVER_PALETTE, CoverLayoutId } from "../components/Cover";
 
 const C = {
   bg: "#EEF2EA",
@@ -347,6 +348,14 @@ function LoginBtn({
 // SLIDE 1 — Willkommen
 // ──────────────────────────────────────────────────────────────
 function Slide1() {
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem("user_name").then((n) => {
+      if (n && n.trim()) setName(n.trim().split(/\s+/)[0]);
+    });
+  }, []);
+
   return (
     <LinearGradient
       colors={["#F4F7F0", C.bg]}
@@ -365,7 +374,7 @@ function Slide1() {
 
         <Text style={styles.eyebrow}>— Willkommen bei DAWG —</Text>
         <Text style={styles.slide1Title}>
-          Hallo, <Text style={{ color: C.accent }}>Koch.</Text>
+          Hallo, <Text style={{ color: C.accent }}>{name ?? "Koch"}.</Text>
           {"\n"}Schön, dass{"\n"}du da bist.
         </Text>
         <Text style={styles.slide1Lede}>
@@ -691,23 +700,39 @@ function Slide3() {
 // ──────────────────────────────────────────────────────────────
 // SLIDE 6 — Autor-Profil (Cover-Preview + CTA)
 // ──────────────────────────────────────────────────────────────
-const COVER_COLORS: { name: string; grad: [string, string] }[] = [
-  { name: "Waldgrün", grad: ["#6B8B68", "#1E2E1A"] },
-  { name: "Salbei", grad: ["#8AAA7A", "#2A3E22"] },
-  { name: "Terrakotta", grad: ["#A09078", "#3A2818"] },
-  { name: "Mokka", grad: ["#9A8A72", "#2E2418"] },
-  { name: "Schieferblau", grad: ["#8890A0", "#282E3A"] },
-  { name: "Rosewood", grad: ["#A08A8A", "#382828"] },
-  { name: "Olive", grad: ["#90987A", "#2A2E1A"] },
-  { name: "Karamell", grad: ["#B09070", "#3A2010"] },
-  { name: "Lavendel", grad: ["#9A8898", "#2E2430"] },
-];
-
-const LAYOUT_NAMES = ["Classic", "Minimal", "Editorial", "Brutalist", "Craft", "Bento"];
-
 function Slide6({ onFinish }: { onFinish: () => void }) {
   const [colorIdx, setColorIdx] = useState(0);
-  const [layoutIdx, setLayoutIdx] = useState(0);
+  const [layoutId, setLayoutId] = useState<CoverLayoutId>("classic");
+  const [userName, setUserName] = useState("Tester");
+
+  useEffect(() => {
+    AsyncStorage.multiGet([
+      "cover_color_idx",
+      "cover_layout_id",
+      "user_name",
+    ]).then((entries) => {
+      for (const [k, v] of entries) {
+        if (!v) continue;
+        if (k === "cover_color_idx") {
+          const i = parseInt(v, 10);
+          if (!Number.isNaN(i) && i >= 0 && i < COVER_PALETTE.length) setColorIdx(i);
+        }
+        if (k === "cover_layout_id") {
+          if (COVER_LAYOUTS.some((l) => l.id === v)) setLayoutId(v as CoverLayoutId);
+        }
+        if (k === "user_name" && v.trim()) setUserName(v.trim());
+      }
+    });
+  }, []);
+
+  const handleSelectColor = (i: number) => {
+    setColorIdx(i);
+    AsyncStorage.setItem("cover_color_idx", String(i));
+  };
+  const handleSelectLayout = (id: CoverLayoutId) => {
+    setLayoutId(id);
+    AsyncStorage.setItem("cover_layout_id", id);
+  };
 
   return (
     <ScrollView
@@ -725,20 +750,24 @@ function Slide6({ onFinish }: { onFinish: () => void }) {
       </Lede>
 
       <View style={{ alignItems: "center", marginTop: 18 }}>
-        <CoverPreview gradient={COVER_COLORS[colorIdx].grad} />
+        <Cover
+          layout={layoutId}
+          gradient={COVER_PALETTE[colorIdx].grad}
+          name={userName}
+          handle="@du"
+        />
       </View>
 
       <View style={{ marginTop: 18, gap: 12 }}>
-        <PickerRow
-          label="Layout"
-          items={LAYOUT_NAMES}
-          activeIndex={layoutIdx}
-          onSelect={setLayoutIdx}
+        <LayoutPicker
+          layouts={COVER_LAYOUTS}
+          activeId={layoutId}
+          onSelect={handleSelectLayout}
         />
         <PickerColors
-          colors={COVER_COLORS}
+          colors={COVER_PALETTE}
           activeIndex={colorIdx}
-          onSelect={setColorIdx}
+          onSelect={handleSelectColor}
         />
       </View>
 
@@ -746,91 +775,48 @@ function Slide6({ onFinish }: { onFinish: () => void }) {
         <Text style={styles.ctaFinalText}>Los geht's →</Text>
       </Pressable>
       <Text style={styles.ctaHint}>
-        Du kannst alles später in den Einstellungen ändern.
+        Alle Einstellungen kannst du im Autor-Tab ändern.
       </Text>
     </ScrollView>
   );
 }
 
-function CoverPreview({ gradient }: { gradient: [string, string] }) {
-  return (
-    <View style={styles.coverPreview}>
-      <LinearGradient
-        colors={gradient}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0.1, y: 0 }}
-        end={{ x: 0.8, y: 1 }}
-      />
-      <View style={styles.coverSpine} />
-
-      <Text style={styles.coverBrand}>— Paul's Kitchen —</Text>
-      <View style={styles.coverCrest}>
-        <Text style={styles.coverCrestLetter}>P</Text>
-      </View>
-      <View style={[styles.coverDiv, { top: "32%" as any }]} />
-      <Text style={styles.coverTitle}>
-        Paul{"\n"}Schlatte
-      </Text>
-      <Text style={styles.coverSubtitle}>EIN ARCHIV IN BEWEGUNG</Text>
-      <View style={[styles.coverDiv, { top: "62%" as any }]} />
-      <View style={styles.coverStats}>
-        <View style={styles.coverStat}>
-          <Text style={styles.coverStatVal}>0</Text>
-          <Text style={styles.coverStatLbl}>REZEPTE</Text>
-        </View>
-        <View style={styles.coverStat}>
-          <Text style={styles.coverStatVal}>0</Text>
-          <Text style={styles.coverStatLbl}>BÜCHER</Text>
-        </View>
-        <View style={styles.coverStat}>
-          <Text style={styles.coverStatVal}>0</Text>
-          <Text style={styles.coverStatLbl}>STREAK</Text>
-        </View>
-      </View>
-      <View style={[styles.coverDiv, { top: "82%" as any }]} />
-      <Text style={styles.coverEdition}>— EDITION 2026 —</Text>
-    </View>
-  );
-}
-
-function PickerRow({
-  label,
-  items,
-  activeIndex,
+function LayoutPicker({
+  layouts,
+  activeId,
   onSelect,
 }: {
-  label: string;
-  items: string[];
-  activeIndex: number;
-  onSelect: (i: number) => void;
+  layouts: { id: CoverLayoutId; name: string }[];
+  activeId: CoverLayoutId;
+  onSelect: (id: CoverLayoutId) => void;
 }) {
   return (
     <View>
-      <Text style={styles.pickerLabel}>{label.toUpperCase()}</Text>
+      <Text style={styles.pickerLabel}>LAYOUT</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: 6 }}
       >
-        {items.map((it, i) => (
-          <Pressable
-            key={it}
-            onPress={() => onSelect(i)}
-            style={[
-              styles.pickerChip,
-              i === activeIndex && styles.pickerChipActive,
-            ]}
-          >
-            <Text
-              style={[
-                styles.pickerChipText,
-                i === activeIndex && { color: "#fff" },
-              ]}
+        {layouts.map((l) => {
+          const active = l.id === activeId;
+          return (
+            <Pressable
+              key={l.id}
+              onPress={() => onSelect(l.id)}
+              style={[styles.pickerChip, active && styles.pickerChipActive]}
             >
-              {it}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                style={[
+                  styles.pickerChipText,
+                  active && { color: "#fff" },
+                ]}
+              >
+                {l.name}
+              </Text>
+            </Pressable>
+          );
+        })}
       </ScrollView>
     </View>
   );
