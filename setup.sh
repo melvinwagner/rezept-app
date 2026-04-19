@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 # ===============================================================
-#  DAWG Rezept-App — Setup für neuen Mac
-#  Installiert alle Requirements für Expo-Tunnel & Backend-Dev.
+#  DAWG Rezept-App — One-Shot Setup (macOS)
 #
-#  Benutzung:
-#    1. Repo klonen:     git clone https://github.com/melvinwagner/rezept-app.git
-#    2. In Ordner:       cd rezept-app
-#    3. Ausführbar:      chmod +x setup.sh
-#    4. Ausführen:       ./setup.sh
+#  Installiert alles was du brauchst, um die App via Expo-Tunnel
+#  gegen den Railway-Server laufen zu lassen.
+#
+#  Nutzung:
+#    1. Repo downloaden von https://github.com/melvinwagner/rezept-app
+#       → Tag v1.2.1-alpha.1 (oder neueren Alpha-Tag) wählen
+#    2. Terminal öffnen, in den Ordner wechseln:
+#         cd rezept-app
+#    3. Ausführbar machen und starten:
+#         chmod +x setup.sh
+#         ./setup.sh
+#    4. Danach App-Tunnel starten:
+#         API_URL=https://rezept-app-production.up.railway.app npx expo start --tunnel
 # ===============================================================
 set -e
 
@@ -15,63 +22,39 @@ echo ""
 echo "==> DAWG Rezept-App — Setup"
 echo ""
 
-# ---------------------------------------------------------------
-# 1. Homebrew (macOS Paketmanager)
-# ---------------------------------------------------------------
+# 1. Homebrew (falls nicht installiert)
 if ! command -v brew &> /dev/null; then
-  echo "Installiere Homebrew…"
+  echo "[1/3] Installiere Homebrew…"
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-  # Apple-Silicon-Pfad in PATH (falls noch nicht drin)
   if [[ -d /opt/homebrew/bin ]]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [[ -d /usr/local/Homebrew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
   fi
 else
-  echo "Homebrew bereits installiert."
+  echo "[1/3] Homebrew schon da — skip."
 fi
 
-# ---------------------------------------------------------------
-# 2. Node.js 20 (LTS) + git
-# ---------------------------------------------------------------
-echo ""
-echo "Installiere Node.js und git…"
-brew install node@20 git
+# 2. Node.js 20 LTS
+if ! command -v node &> /dev/null; then
+  echo "[2/3] Installiere Node.js 20…"
+  brew install node@20
+  brew link --overwrite node@20 || true
+else
+  echo "[2/3] Node schon da ($(node -v)) — skip."
+fi
 
-# ---------------------------------------------------------------
-# 3. Python + ffmpeg (für yt-dlp)
-# ---------------------------------------------------------------
-echo ""
-echo "Installiere Python und ffmpeg…"
-brew install python ffmpeg
-
-# ---------------------------------------------------------------
-# 4. yt-dlp (Video-Audio-Extraktion)
-# ---------------------------------------------------------------
-echo ""
-echo "Installiere yt-dlp…"
-pip3 install --upgrade --break-system-packages yt-dlp || pip3 install --upgrade --user yt-dlp
-
-# ---------------------------------------------------------------
-# 5. npm-Dependencies (App + Server)
-# ---------------------------------------------------------------
-echo ""
-echo "Installiere npm-Dependencies (das dauert 1–3 Minuten)…"
+# 3. npm-Dependencies (inkl. Expo + @expo/ngrok)
+echo "[3/3] Installiere npm-Dependencies (dauert 1–3 Min)…"
 npm install
 
-# ---------------------------------------------------------------
-# 6. Expo Go (Info — muss auf dem Tester-Handy installiert sein)
-# ---------------------------------------------------------------
 echo ""
 echo "==> Setup fertig."
 echo ""
-echo "Nächste Schritte:"
+echo "App starten mit:"
 echo ""
-echo "  # Backend + App lokal starten (LAN-Modus):"
-echo "  npm run dev"
-echo ""
-echo "  # Tester-Tunnel (Expo Go von überall):"
 echo "  API_URL=https://rezept-app-production.up.railway.app npx expo start --tunnel"
 echo ""
-echo "  # Tester brauchen auf ihrem Handy:"
-echo "  - Expo Go App (iOS App Store / Google Play)"
+echo "Dann QR-Code mit Expo Go (iOS App Store / Google Play) scannen."
 echo ""
