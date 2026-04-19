@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import BugReportButton from "../components/BugReportButton";
 
 export default function RootLayout() {
   const router = useRouter();
@@ -29,6 +30,8 @@ export default function RootLayout() {
 
   if (!ready) return <View style={{ flex: 1, backgroundColor: "#EEF2EA" }} />;
 
+  const inOnboarding = segments[0] === "onboarding";
+
   return (
     <>
       <StatusBar style="dark" />
@@ -46,8 +49,12 @@ export default function RootLayout() {
       >
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="recipe/[id]" options={{ title: "Rezept" }} />
+        <Stack.Screen
+          name="recipe/[id]"
+          options={{ title: "Rezept", headerBackTitle: "Magazin" }}
+        />
       </Stack>
+      {!inOnboarding && <BugReportButton />}
     </>
   );
 }

@@ -10,6 +10,7 @@ import { useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getRecipes, getCookbooks } from "../../services/storage";
 import { Cover, COVER_LAYOUTS, COVER_PALETTE, CoverLayoutId } from "../../components/Cover";
+import CoverEditorModal from "../../components/CoverEditorModal";
 
 export default function ProfileScreen() {
   const [recipeCount, setRecipeCount] = useState(0);
@@ -17,49 +18,79 @@ export default function ProfileScreen() {
   const [userName, setUserName] = useState("Tester");
   const [colorIdx, setColorIdx] = useState(0);
   const [layoutId, setLayoutId] = useState<CoverLayoutId>("classic");
+  const [tagline, setTagline] = useState("Ein Archiv in Bewegung");
+  const [edition, setEdition] = useState("Edition 2026");
+  const [showEditor, setShowEditor] = useState(false);
+  const [showTip, setShowTip] = useState(false);
   const streak = 0;
+
+  const loadAll = useCallback(async () => {
+    const [r, c, entries] = await Promise.all([
+      getRecipes(),
+      getCookbooks(),
+      AsyncStorage.multiGet([
+        "user_name",
+        "cover_color_idx",
+        "cover_layout_id",
+        "cover_tagline",
+        "cover_edition",
+        "editor_tip_seen",
+      ]),
+    ]);
+    setRecipeCount(r.length);
+    setCookbookCount(c.length);
+
+    let tipSeen = false;
+    for (const [k, v] of entries) {
+      if (!v) continue;
+      if (k === "user_name" && v.trim()) setUserName(v.trim());
+      if (k === "cover_color_idx") {
+        const i = parseInt(v, 10);
+        if (!Number.isNaN(i) && i >= 0 && i < COVER_PALETTE.length) {
+          setColorIdx(i);
+        }
+      }
+      if (k === "cover_layout_id" && COVER_LAYOUTS.some((l) => l.id === v)) {
+        setLayoutId(v as CoverLayoutId);
+      }
+      if (k === "cover_tagline") setTagline(v);
+      if (k === "cover_edition") setEdition(v);
+      if (k === "editor_tip_seen" && v === "true") tipSeen = true;
+    }
+    setShowTip(!tipSeen);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        const [r, c, entries] = await Promise.all([
-          getRecipes(),
-          getCookbooks(),
-          AsyncStorage.multiGet([
-            "user_name",
-            "cover_color_idx",
-            "cover_layout_id",
-          ]),
-        ]);
-        setRecipeCount(r.length);
-        setCookbookCount(c.length);
-
-        for (const [k, v] of entries) {
-          if (!v) continue;
-          if (k === "user_name" && v.trim()) setUserName(v.trim());
-          if (k === "cover_color_idx") {
-            const i = parseInt(v, 10);
-            if (!Number.isNaN(i) && i >= 0 && i < COVER_PALETTE.length) {
-              setColorIdx(i);
-            }
-          }
-          if (k === "cover_layout_id") {
-            if (COVER_LAYOUTS.some((l) => l.id === v)) {
-              setLayoutId(v as CoverLayoutId);
-            }
-          }
-        }
-      })();
-    }, [])
+      loadAll();
+    }, [loadAll])
   );
+
+  const dismissTip = async () => {
+    await AsyncStorage.setItem("editor_tip_seen", "true");
+    setShowTip(false);
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={{ alignItems: "center", marginBottom: 20 }}>
+      {showTip && (
+        <View style={styles.tipBanner}>
+          <Text style={styles.tipText}>
+            Gib deinem Cover den letzten Schliff — lass deiner Kreativität freien Lauf.
+          </Text>
+          <Pressable onPress={dismissTip} hitSlop={8}>
+            <Text style={styles.tipClose}>✕</Text>
+          </Pressable>
+        </View>
+      )}
+
+      <View style={{ alignItems: "center", marginBottom: 20, marginTop: showTip ? 4 : 0 }}>
         <Cover
           layout={layoutId}
           gradient={COVER_PALETTE[colorIdx].grad}
           name={userName}
+          tagline={tagline}
+          edition={edition}
           handle="@du"
           stats={[
             { label: "Rezepte", value: recipeCount },
@@ -71,7 +102,7 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.settings}>
-        <Pressable style={styles.settingsItem}>
+        <Pressable style={styles.settingsItem} onPress={() => setShowEditor(true)}>
           <Text style={styles.settingsIcon}>✎</Text>
           <Text style={styles.settingsText}>Profil bearbeiten</Text>
           <Text style={styles.settingsChevron}>›</Text>
@@ -96,7 +127,15 @@ export default function ProfileScreen() {
         </Pressable>
       </View>
 
-      <Text style={styles.version}>DAWG · 1.0 Alpha · Ausgabe 2026</Text>
+      <Text style={styles.version}>DAWG · 1.1 Alpha · Ausgabe 2026</Text>
+
+      <CoverEditorModal
+        visible={showEditor}
+        onClose={() => setShowEditor(false)}
+        onSaved={() => {
+          loadAll();
+        }}
+      />
     </ScrollView>
   );
 }
@@ -104,6 +143,27 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#EEF2EA" },
   content: { padding: 20, paddingBottom: 110 },
+
+  tipBanner: {
+    backgroundColor: "rgba(122,170,110,0.15)",
+    borderWidth: 0.5,
+    borderColor: "rgba(90,154,78,0.35)",
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center" as any,
+    gap: 10,
+    marginBottom: 14,
+  } as any,
+  tipText: {
+    flex: 1,
+    fontSize: 12,
+    color: "#2A4220",
+    fontWeight: "600",
+    lineHeight: 16,
+  },
+  tipClose: { fontSize: 16, color: "#5A9A4E", fontWeight: "700", paddingHorizontal: 4 },
 
   settings: {
     backgroundColor: "rgba(255,255,255,0.6)",

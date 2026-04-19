@@ -15,6 +15,7 @@ import {
 import { useLocalSearchParams } from "expo-router";
 import { getRecipes, updateRecipe } from "../../services/storage";
 import { recalculateNutrition } from "../../services/api";
+import { percentDailyValue } from "../../services/dailyValues";
 import { Recipe, Ingredient, Macros } from "../../types/recipe";
 
 const ADD_UNIT_OPTIONS = ["g", "ml"];
@@ -378,12 +379,23 @@ export default function RecipeDetailScreen() {
 
           {showMicro && recipe.micronutrients && (
             <View style={styles.microGrid}>
-              {Object.entries(recipe.micronutrients).map(([name, value]) => (
-                <View key={name} style={styles.microRow}>
-                  <Text style={styles.microName}>{name}</Text>
-                  <Text style={styles.microValue}>{value}</Text>
-                </View>
-              ))}
+              {Object.entries(recipe.micronutrients).map(([name, value]) => {
+                const pct = percentDailyValue(name, value);
+                return (
+                  <View key={name} style={styles.microRow}>
+                    <Text style={styles.microName}>{name}</Text>
+                    <View style={styles.microValueBlock}>
+                      <Text style={styles.microValue}>{value}</Text>
+                      {pct !== null && (
+                        <Text style={styles.microPct}>{pct}% RI</Text>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+              <Text style={styles.microFootnote}>
+                * Tagesbedarf laut RI (EU-Referenzwert, Erwachsene)
+              </Text>
             </View>
           )}
         </View>
@@ -514,9 +526,12 @@ const styles = StyleSheet.create({
   microButton: { backgroundColor: W(0.35), borderRadius: 14, padding: 12, alignItems: "center", marginTop: 16, borderWidth: 0.5, borderColor: W(0.5) },
   microButtonText: { fontSize: 13, fontWeight: "600", color: "#6E8868" },
   microGrid: { backgroundColor: W(0.35), borderRadius: 14, padding: 12, marginTop: 10, borderWidth: 0.5, borderColor: W(0.5) },
-  microRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: "rgba(123,170,110,0.06)" },
+  microRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" as any, paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: "rgba(123,170,110,0.06)" } as any,
   microName: { fontSize: 13, color: "#6E8868" },
+  microValueBlock: { alignItems: "flex-end" as any } as any,
   microValue: { fontSize: 13, fontWeight: "600", color: "#2A3825" },
+  microPct: { fontSize: 10, fontWeight: "700", color: "#5A9A4E", marginTop: 1, letterSpacing: 0.3 },
+  microFootnote: { fontSize: 10, color: "#8A9E82", marginTop: 10, fontStyle: "italic" as any, lineHeight: 14 },
   allergenSection: { marginTop: 20, marginBottom: 20 },
   allergenRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   allergenBadge: { backgroundColor: "rgba(155,68,68,0.06)", borderRadius: 10, paddingHorizontal: 11, paddingVertical: 5, borderWidth: 0.5, borderColor: "rgba(155,68,68,0.1)" },

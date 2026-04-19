@@ -6,6 +6,7 @@ const { execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const crypto = require("crypto");
 
 const app = express();
 app.set("trust proxy", 1); // Railway/Proxy: liefert client-IP im X-Forwarded-For
@@ -188,6 +189,29 @@ async function lookupOFF(searchTerm) {
 
 // In-Memory Cache für Nährwert-Lookups
 const nutritionCache = new Map();
+
+// In-Memory Cache für komplette Rezepte (Deterministik über Geräte hinweg).
+// Key = sha256(videoUrl). Gleiches Video → gleiches Rezept, solange Cache lebt.
+const recipeCache = new Map();
+const RECIPE_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 Tage
+
+function recipeCacheKey(videoUrl) {
+  return crypto.createHash("sha256").update(videoUrl.trim()).digest("hex");
+}
+
+function getCachedRecipe(videoUrl) {
+  const entry = recipeCache.get(recipeCacheKey(videoUrl));
+  if (!entry) return null;
+  if (Date.now() - entry.ts > RECIPE_CACHE_TTL_MS) {
+    recipeCache.delete(recipeCacheKey(videoUrl));
+    return null;
+  }
+  return entry.recipe;
+}
+
+function setCachedRecipe(videoUrl, recipe) {
+  recipeCache.set(recipeCacheKey(videoUrl), { ts: Date.now(), recipe });
+}
 
 async function lookupNutrition(ingredient) {
   const searchTerm = ingredient.search || cleanIngredientName(ingredient.name);
@@ -502,6 +526,12 @@ app.post("/api/generate-recipe", recipeLimiter, async (req, res) => {
     return res.status(400).json({ error: "Video URL fehlt." });
   }
 
+  const cached = getCachedRecipe(videoUrl);
+  if (cached) {
+    console.log("Cache hit for videoUrl – returning cached recipe.");
+    return res.json(cached);
+  }
+
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "rezept-"));
 
   try {
@@ -567,13 +597,22 @@ REGELN:
 - Gleiche beide Quellen miteinander ab. Wenn das Transkript zusätzliche Details oder Tipps enthält, integriere diese in die Schritte.
 - Falls nur eine Quelle vorhanden ist, nutze diese für beides.
 
+SPRACHE & BEGRIFFE - WICHTIG:
+- Rezept-Text komplett auf Deutsch.
+- ABER: Etablierte englische Food-Begriffe NICHT übersetzen. Behalte im Original:
+  Air Fryer, Meal Prep, Smoothie, Bowl, Dip, Wrap, Burger, Bun, Pulled Pork, Pulled Chicken, Wings, Nuggets, Brownies, Cookies, Cheesecake, Pancakes, Overnight Oats, Stir Fry, Ramen, Poke, Taco, Burrito, BBQ, Rub, Marinade, Glaze, Dressing, Topping, Crumble, Tempura, Pad Thai, Curry.
+- Marken- und Eigennamen (z.B. Sriracha, Worcestershire, Parmesan) bleiben unverändert.
+- Keine gezwungenen Eindeutschungen wie "Heißluftfritteuse", wenn "Air Fryer" geläufig ist.
+
 EINHEITEN - WICHTIG:
-- Alle Mengenangaben MÜSSEN in europäischen/metrischen Einheiten angegeben werden (g, kg, ml, l, EL, TL, Stück).
+- Alle Mengenangaben MÜSSEN in europäischen/metrischen Einheiten angegeben werden. Erlaubte Einheiten: "g", "kg", "ml", "l", "EL", "TL", "Stück", "Prise", "Scheibe", "Zehe". KEINE anderen Einheiten.
+- BEVORZUGE g oder ml gegenüber Stück/EL/TL, wann immer eine sinnvolle Gramm-Angabe möglich ist (z.B. "150 g Mehl" statt "1 Tasse Mehl").
 - Rechne amerikanische Einheiten automatisch um: 1 cup Flüssigkeit = 240ml, 1 cup Mehl = 130g, 1 cup Zucker = 200g, 1 cup Butter = 225g, 1 cup Käse gerieben = 100g, 1 oz = 28g, 1 lb = 450g, 1 tbsp = 1 EL, 1 tsp = 1 TL, 1 stick Butter = 115g.
 - Runde die Ergebnisse auf schöne, praktische Zahlen (z.B. 236ml → 240ml, 227g → 225g, 113g → 115g, 28g → 30g).
 - Temperaturen in °C (falls Fahrenheit: (F-32) × 5/9, gerundet auf 5er-Schritte).
 - "servings" MUSS eine Zahl sein (z.B. 2, nicht "2 Portionen").
 - Jede Zutat MUSS ein Objekt sein mit "amount" (Zahl oder null), "unit" (String oder null) und "name" (String). Zutaten ohne Mengenangabe (z.B. "Salz nach Geschmack") haben amount: null und unit: null.
+- Zutatenreihenfolge: IMMER in der Reihenfolge, in der sie in der Caption erscheinen — nicht umsortieren.
 
 Antworte AUSSCHLIESSLICH mit validem JSON im folgenden Format, ohne Markdown-Codeblöcke oder zusätzlichen Text:
 
@@ -590,7 +629,13 @@ Antworte AUSSCHLIESSLICH mit validem JSON im folgenden Format, ohne Markdown-Cod
 }
 
 HINWEIS zu Zutaten:
-- Jede Zutat MUSS ein "search"-Feld enthalten: ein kurzer englischer Suchbegriff für die USDA-Nährwertdatenbank (z.B. "butter", "garlic raw", "olive oil", "heavy cream", "parmesan cheese", "spaghetti pasta", "shallot"). Nur das reine Lebensmittel, keine Zubereitungsart.
+- Jede Zutat MUSS ein "search"-Feld enthalten: ein kurzer englischer Suchbegriff für die USDA-Nährwertdatenbank.
+- REGELN für "search":
+  - Immer lowercase.
+  - Immer Singular ("shallot" statt "shallots", "tomato" statt "tomatoes", "chicken breast" statt "chicken breasts").
+  - Genau 1–2 Wörter, nur das reine Lebensmittel.
+  - KEINE Adjektive zu Zubereitung, Zustand, Marke, Herkunft ("raw", "fresh", "cooked", "organic", "italian" etc. weglassen — außer sie sind Teil des Produktnamens wie "heavy cream" oder "olive oil").
+  - Standard-Begriffe: "butter", "garlic", "olive oil", "heavy cream", "parmesan cheese", "spaghetti", "shallot", "onion", "tomato", "chicken breast", "ground beef", "white rice", "egg", "flour", "sugar", "salt", "pepper".
 
 HINWEIS zu Allergenen:
 - allergens: Liste ALLE enthaltenen Allergene auf (z.B. Gluten, Milch, Ei, Soja, Nüsse, Sellerie, Senf, Sesam, Lupine, Weichtiere, Krebstiere, Fisch, Erdnüsse, Schwefeldioxid).
@@ -613,6 +658,7 @@ HINWEIS zu Tags:
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 4096,
+        temperature: 0,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -651,6 +697,7 @@ HINWEIS zu Tags:
     recipe.thumbnail = thumbnail || null;
     if (thumbnail) console.log("Step 5: Using video thumbnail as food image");
 
+    setCachedRecipe(videoUrl, recipe);
     res.json(recipe);
   } catch (err) {
     console.error("Error:", err.message);
@@ -675,6 +722,88 @@ app.post("/api/recalculate-nutrition", async (req, res) => {
     });
   } catch (err) {
     console.error("Recalculate error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint: Bug-Report / Feedback → Monday-Board "Bugs und Fixes"
+const MONDAY_API_URL = "https://api.monday.com/v2";
+const MONDAY_BUGS_BOARD_ID = 5094884159;
+const MONDAY_COL_USERNAME = "text_mm2jaft0";
+const MONDAY_COL_CATEGORY = "color_mm2jtxdj";
+const MONDAY_COL_DESCRIPTION = "long_text_mm2jyr2p";
+
+const bugReportLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Zu viele Bug-Reports. Versuch es später nochmal." },
+});
+
+app.post("/api/report-bug", bugReportLimiter, async (req, res) => {
+  const { username, category, text } = req.body || {};
+  const MONDAY_TOKEN = process.env.MONDAY_API_TOKEN;
+
+  if (!MONDAY_TOKEN) {
+    return res.status(500).json({ error: "Bug-Report ist nicht konfiguriert (Server)." });
+  }
+  if (!username || !category || !text) {
+    return res.status(400).json({ error: "username, category und text erforderlich." });
+  }
+
+  const trimmedText = String(text).trim().slice(0, 2000);
+  if (!trimmedText) {
+    return res.status(400).json({ error: "Text darf nicht leer sein." });
+  }
+
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const itemName = `${category} · ${username} · ${dateStr}`;
+
+  const columnValues = {
+    [MONDAY_COL_USERNAME]: String(username).slice(0, 200),
+    [MONDAY_COL_CATEGORY]: { label: String(category) },
+    [MONDAY_COL_DESCRIPTION]: { text: trimmedText },
+  };
+
+  const mutation = `
+    mutation($boardId: ID!, $name: String!, $columnValues: JSON!) {
+      create_item(
+        board_id: $boardId,
+        item_name: $name,
+        column_values: $columnValues,
+        create_labels_if_missing: true
+      ) { id }
+    }
+  `;
+
+  try {
+    const response = await fetch(MONDAY_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": MONDAY_TOKEN,
+      },
+      body: JSON.stringify({
+        query: mutation,
+        variables: {
+          boardId: String(MONDAY_BUGS_BOARD_ID),
+          name: itemName,
+          columnValues: JSON.stringify(columnValues),
+        },
+      }),
+    });
+
+    const data = await response.json();
+    if (data.errors) {
+      console.error("Monday API errors:", data.errors);
+      return res.status(502).json({ error: data.errors[0]?.message || "Monday API Fehler" });
+    }
+
+    console.log(`Bug report from ${username} (${category}) → Monday item ${data.data?.create_item?.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Bug report failed:", err.message);
     res.status(500).json({ error: err.message });
   }
 });

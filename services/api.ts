@@ -82,6 +82,24 @@ export async function generateRecipe(videoUrl: string): Promise<Recipe> {
   };
 }
 
+export type BugCategory = "Bug" | "Feedback" | "Idee";
+
+export async function reportBug(
+  username: string,
+  category: BugCategory,
+  text: string,
+): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/report-bug`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, category, text }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: "Server nicht erreichbar" }));
+    throw new Error(err.error || `Fehler: ${response.status}`);
+  }
+}
+
 export async function recalculateNutrition(ingredients: Ingredient[], servings: number): Promise<{
   nutritionPerServing: Macros;
   nutritionPer100g: Macros;

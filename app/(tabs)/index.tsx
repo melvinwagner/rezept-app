@@ -964,7 +964,7 @@ const styles = StyleSheet.create({
     borderStyle: "dashed" as any,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
+    marginTop: 24,
     backgroundColor: "rgba(42,56,37,0.03)",
   },
 
@@ -1152,7 +1152,7 @@ const styles = StyleSheet.create({
 
   // === GEMÜSE DES TAGES ===
   gemueseCard: {
-    backgroundColor: W(0.55), borderRadius: 22, padding: 18, marginTop: 16,
+    backgroundColor: W(0.55), borderRadius: 22, padding: 18, marginTop: 24,
     borderWidth: 0.5, borderColor: W(0.75),
     backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
     overflow: "hidden" as any,
@@ -1169,7 +1169,7 @@ const styles = StyleSheet.create({
   gemuese_btnText: { color: "#fff", fontSize: 13, fontWeight: "600" },
 
   // === WIDGET SLIDER ===
-  widgetSection: { marginBottom: 10 },
+  widgetSection: { marginTop: 24, marginBottom: 10 },
   widgetCard: {
     backgroundColor: W(0.55), borderRadius: 20, padding: 18,
     borderWidth: 0.5, borderColor: W(0.75),
