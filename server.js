@@ -349,21 +349,6 @@ async function searchFoodImage(recipeName) {
   }
 }
 
-function getVideoThumbnail(videoUrl) {
-  return new Promise((resolve) => {
-    execFile(
-      "yt-dlp",
-      ["--skip-download", "--print", "%(thumbnail)s", videoUrl],
-      { timeout: 15000 },
-      (error, stdout) => {
-        if (error) { resolve(null); return; }
-        const url = stdout.trim();
-        resolve(url && url !== "NA" ? url : null);
-      }
-    );
-  });
-}
-
 function getVideoCaption(videoUrl) {
   return new Promise((resolve, reject) => {
     execFile(
@@ -535,19 +520,15 @@ app.post("/api/generate-recipe", recipeLimiter, async (req, res) => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "rezept-"));
 
   try {
-    // Step 1: Get video caption + thumbnail in parallel
-    console.log("Step 1: Getting video caption + thumbnail...");
-    const [caption, thumbnail] = await Promise.all([
-      getVideoCaption(videoUrl),
-      getVideoThumbnail(videoUrl),
-    ]);
+    // Step 1: Get video caption
+    console.log("Step 1: Getting video caption...");
+    const caption = await getVideoCaption(videoUrl);
     if (caption) {
       console.log("Got caption, length:", caption.length);
       console.log("Caption:", caption.substring(0, 300) + "...");
     } else {
       console.log("No caption available.");
     }
-    if (thumbnail) console.log("Got thumbnail:", thumbnail);
 
     // Step 2: Try to get subtitles
     console.log("Step 2: Trying to download subtitles...");
@@ -692,10 +673,16 @@ HINWEIS zu Tags:
       recipe.micronutrients = {};
     }
 
-    // Thumbnail vom Video = Bild vom fertigen Essen
-    recipe.imageUrl = thumbnail || null;
-    recipe.thumbnail = thumbnail || null;
-    if (thumbnail) console.log("Step 5: Using video thumbnail as food image");
+    // Step 5: Food-Bild über Pexels anhand des Rezeptnamens generieren
+    console.log("Step 5: Generating food image via Pexels...");
+    const generatedImage = await searchFoodImage(recipe.title);
+    recipe.imageUrl = generatedImage || null;
+    recipe.thumbnail = generatedImage || null;
+    if (generatedImage) {
+      console.log("Got Pexels image:", generatedImage);
+    } else {
+      console.log("No Pexels image found — recipe has no image.");
+    }
 
     setCachedRecipe(videoUrl, recipe);
     res.json(recipe);
