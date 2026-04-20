@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  Image,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -14,12 +13,23 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
 import { signIn, signUp, resetPassword } from "../services/auth";
+import { colors, fonts, radii, typography } from "../constants/theme";
+import {
+  AppleLogo,
+  GoogleLogo,
+  FacebookLogo,
+  InstagramLogo,
+  EmailLogo,
+} from "../components/BrandLogos";
 
-type Mode = "login" | "signup";
+type View_ = "picker" | "email";
+type Mode = "signup" | "login";
 
 export default function AuthScreen() {
   const router = useRouter();
+  const [view, setView] = useState<View_>("picker");
   const [mode, setMode] = useState<Mode>("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +38,19 @@ export default function AuthScreen() {
   const [err, setErr] = useState("");
 
   const isSignup = mode === "signup";
+
+  const openEmail = (m: Mode) => {
+    setMode(m);
+    setErr("");
+    setView("email");
+  };
+
+  const socialSoon = (name: string) => {
+    Alert.alert(
+      `${name} kommt bald`,
+      "Dieser Anmeldeweg wird in Kürze aktiviert. Starte vorerst mit Email."
+    );
+  };
 
   const submit = async () => {
     setErr("");
@@ -76,26 +99,139 @@ export default function AuthScreen() {
     }
   };
 
+  if (view === "picker") {
+    return (
+      <View style={styles.pickerRoot}>
+        {/* TOP — Ink Masthead */}
+        <View style={styles.topHalf}>
+          <Text style={styles.mastheadDark}>DAWG</Text>
+          <Text style={styles.heroTitle}>
+            Willkommen im{"\n"}
+            <Text style={styles.heroAccent}>Magazin.</Text>
+          </Text>
+          <Text style={styles.heroSub}>
+            Dein Kochbuch, aus den Videos, die du liebst.
+          </Text>
+        </View>
+
+        {/* Pistachio divider */}
+        <View style={styles.divider} />
+
+        {/* BOTTOM — Cream Providers */}
+        <ScrollView
+          style={styles.bottomHalf}
+          contentContainerStyle={styles.bottomContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.sectionLabel}>— Wähle deinen Weg —</Text>
+
+          <Pressable
+            style={[styles.pbtn, styles.pbtnApple]}
+            onPress={() => socialSoon("Apple")}
+          >
+            <View style={styles.pbtnIco}>
+              <AppleLogo size={18} color="#fff" />
+            </View>
+            <Text style={styles.pbtnLabel}>Weiter mit Apple</Text>
+            <View style={styles.pbtnSpacer} />
+          </Pressable>
+
+          <Pressable
+            style={[styles.pbtn, styles.pbtnGoogle]}
+            onPress={() => socialSoon("Google")}
+          >
+            <View style={styles.pbtnIco}>
+              <GoogleLogo size={18} />
+            </View>
+            <Text style={[styles.pbtnLabel, styles.pbtnLabelDark]}>
+              Weiter mit Google
+            </Text>
+            <View style={styles.pbtnSpacer} />
+          </Pressable>
+
+          <Pressable
+            style={[styles.pbtn, styles.pbtnFacebook]}
+            onPress={() => socialSoon("Facebook")}
+          >
+            <View style={styles.pbtnIco}>
+              <FacebookLogo size={18} color="#fff" />
+            </View>
+            <Text style={styles.pbtnLabel}>Weiter mit Facebook</Text>
+            <View style={styles.pbtnSpacer} />
+          </Pressable>
+
+          <Pressable onPress={() => socialSoon("Instagram")}>
+            <LinearGradient
+              colors={["#F58529", "#DD2A7B", "#8134AF", "#515BD4"]}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.pbtn}
+            >
+              <View style={styles.pbtnIco}>
+                <InstagramLogo size={18} />
+              </View>
+              <Text style={styles.pbtnLabel}>Weiter mit Instagram</Text>
+              <View style={styles.pbtnSpacer} />
+            </LinearGradient>
+          </Pressable>
+
+          <Pressable
+            style={[styles.pbtn, styles.pbtnEmail]}
+            onPress={() => openEmail("signup")}
+          >
+            <View style={styles.pbtnIco}>
+              <EmailLogo size={18} color={colors.bg} />
+            </View>
+            <Text style={styles.pbtnLabel}>Weiter mit Email</Text>
+            <View style={styles.pbtnSpacer} />
+          </Pressable>
+
+          <Pressable onPress={() => openEmail("login")} style={styles.switchRow}>
+            <Text style={styles.switchText}>
+              Schon dabei? <Text style={styles.switchLink}>Anmelden</Text>
+            </Text>
+          </Pressable>
+
+          <Text style={styles.legal}>
+            Mit Fortfahren akzeptierst du unsere Datenschutzrichtlinie und
+            Nutzungsbedingungen.
+          </Text>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // ========== EMAIL FORM ==========
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={styles.container}
+      style={styles.emailRoot}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.emailContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Image
-          source={require("../assets/dawg-logo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.eyebrow}>— DAWG Account —</Text>
-        <Text style={styles.title}>
-          {isSignup ? "Konto erstellen" : "Willkommen zurück"}
+        <Pressable onPress={() => setView("picker")} style={styles.backRow}>
+          <Text style={styles.backArrow}>←</Text>
+          <Text style={styles.backLabel}>Zurück</Text>
+        </Pressable>
+
+        <Text style={styles.eyebrow}>— DAWG Konto —</Text>
+        <Text style={styles.emailTitle}>
+          {isSignup ? (
+            <>
+              Konto{"\n"}
+              <Text style={styles.emailTitleAc}>erstellen.</Text>
+            </>
+          ) : (
+            <>
+              Willkommen{"\n"}
+              <Text style={styles.emailTitleAc}>zurück.</Text>
+            </>
+          )}
         </Text>
-        <Text style={styles.subtitle}>
+        <Text style={styles.emailSub}>
           {isSignup
             ? "Deine Rezepte. Dein Magazin. Sicher in der Cloud."
             : "Melde dich an, um auf deine Rezepte zuzugreifen."}
@@ -109,7 +245,9 @@ export default function AuthScreen() {
               setErr("");
             }}
           >
-            <Text style={[styles.toggleText, !isSignup && styles.toggleTextActive]}>
+            <Text
+              style={[styles.toggleText, !isSignup && styles.toggleTextActive]}
+            >
               Anmelden
             </Text>
           </Pressable>
@@ -120,7 +258,9 @@ export default function AuthScreen() {
               setErr("");
             }}
           >
-            <Text style={[styles.toggleText, isSignup && styles.toggleTextActive]}>
+            <Text
+              style={[styles.toggleText, isSignup && styles.toggleTextActive]}
+            >
               Registrieren
             </Text>
           </Pressable>
@@ -134,7 +274,7 @@ export default function AuthScreen() {
               value={displayName}
               onChangeText={setDisplayName}
               placeholder="Dein Name"
-              placeholderTextColor="#A8B8A2"
+              placeholderTextColor={colors.sageFaint}
               autoCapitalize="words"
               autoCorrect={false}
             />
@@ -147,7 +287,7 @@ export default function AuthScreen() {
           value={email}
           onChangeText={setEmail}
           placeholder="du@beispiel.de"
-          placeholderTextColor="#A8B8A2"
+          placeholderTextColor={colors.sageFaint}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"
@@ -160,7 +300,7 @@ export default function AuthScreen() {
           value={password}
           onChangeText={setPassword}
           placeholder={isSignup ? "min. 8 Zeichen" : "Passwort"}
-          placeholderTextColor="#A8B8A2"
+          placeholderTextColor={colors.sageFaint}
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}
@@ -199,104 +339,244 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#EEF2EA" },
-  content: { padding: 28, paddingTop: 72, paddingBottom: 60 },
+  // ====================================================
+  // PICKER
+  // ====================================================
+  pickerRoot: { flex: 1, backgroundColor: colors.bg },
 
-  logo: { width: 56, height: 56, alignSelf: "center" as any, marginBottom: 16 },
-  eyebrow: {
-    textAlign: "center" as any,
-    fontSize: 11,
-    letterSpacing: 2,
-    color: "#8A9E82",
-    textTransform: "uppercase" as any,
+  topHalf: {
+    backgroundColor: colors.ink,
+    paddingTop: 88,
+    paddingBottom: 36,
+    paddingHorizontal: 28,
+    justifyContent: "center",
+  },
+  mastheadDark: {
+    fontFamily: fonts.displayBlack,
+    fontSize: 16,
+    letterSpacing: 5,
+    color: colors.bg,
+    marginBottom: 22,
+  },
+  heroTitle: {
+    fontFamily: fonts.displayBlack,
+    fontSize: 38,
+    lineHeight: 40,
+    letterSpacing: -0.8,
+    color: colors.bg,
     marginBottom: 10,
-    fontWeight: "700",
   },
-  title: {
-    fontFamily: "FrankRuhlLibre_900Black",
-    fontSize: 30,
-    color: "#2A3825",
-    textAlign: "center" as any,
-    letterSpacing: -0.7,
-    lineHeight: 34,
-  },
-  subtitle: {
-    fontFamily: "Manrope_500Medium",
+  heroAccent: { color: colors.accentLuminous },
+  heroSub: {
+    fontFamily: fonts.bodyMedium,
     fontSize: 14,
-    color: "#5E6E55",
-    textAlign: "center" as any,
-    marginTop: 8,
-    marginBottom: 24,
+    lineHeight: 20,
+    color: "rgba(238,242,234,0.72)",
+    maxWidth: 280,
+  },
+
+  divider: {
+    height: 2,
+    backgroundColor: colors.accentLuminous,
+  },
+
+  bottomHalf: { flex: 1, backgroundColor: colors.bg },
+  bottomContent: {
+    paddingHorizontal: 24,
+    paddingTop: 26,
+    paddingBottom: 32,
+  },
+
+  sectionLabel: {
+    fontFamily: fonts.bodyExtraBold,
+    fontSize: 10,
+    letterSpacing: 2.4,
+    textTransform: "uppercase" as const,
+    color: colors.sageDim,
+    marginBottom: 14,
+  },
+
+  pbtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: radii.md,
+    marginBottom: 8,
+  },
+  pbtnApple: { backgroundColor: "#0b0c08" },
+  pbtnGoogle: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: colors.cardBorderInk,
+  },
+  pbtnFacebook: { backgroundColor: "#1877F2" },
+  pbtnEmail: { backgroundColor: colors.ink },
+  pbtnIco: {
+    width: 22,
+    height: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pbtnLabel: {
+    flex: 1,
+    textAlign: "center",
+    fontFamily: fonts.bodyBold,
+    fontSize: 14,
+    color: "#fff",
+    letterSpacing: 0.1,
+  },
+  pbtnLabelDark: { color: colors.ink },
+  pbtnSpacer: { width: 22 },
+
+  switchRow: {
+    alignItems: "center",
+    paddingVertical: 16,
+    marginTop: 4,
+  },
+  switchText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.inkMuted,
+  },
+  switchLink: {
+    fontFamily: fonts.bodyBold,
+    color: colors.accentInk,
+    textDecorationLine: "underline",
+  },
+
+  legal: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    lineHeight: 15,
+    color: colors.sageFaint,
+    textAlign: "center",
+    marginTop: 4,
+  },
+
+  // ====================================================
+  // EMAIL FORM
+  // ====================================================
+  emailRoot: { flex: 1, backgroundColor: colors.bg },
+  emailContent: { padding: 28, paddingTop: 72, paddingBottom: 60 },
+
+  backRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 28,
+  },
+  backArrow: {
+    fontFamily: fonts.displayBlack,
+    fontSize: 22,
+    color: colors.ink,
+    marginRight: 8,
+  },
+  backLabel: {
+    fontFamily: fonts.bodyExtraBold,
+    fontSize: 10,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    color: colors.sageDim,
+  },
+
+  eyebrow: {
+    textAlign: "center",
+    fontSize: 10,
+    letterSpacing: 2,
+    color: colors.sageDim,
+    textTransform: "uppercase",
+    marginBottom: 14,
+    fontFamily: fonts.bodyExtraBold,
+  },
+  emailTitle: {
+    fontFamily: fonts.displayBlack,
+    fontSize: 34,
+    color: colors.ink,
+    textAlign: "center",
+    letterSpacing: -0.7,
+    lineHeight: 38,
+  },
+  emailTitleAc: { color: colors.accentInk },
+  emailSub: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.inkMuted,
+    textAlign: "center",
+    marginTop: 10,
+    marginBottom: 26,
     lineHeight: 20,
   },
 
   toggle: {
     flexDirection: "row",
     backgroundColor: "rgba(255,255,255,0.7)",
-    borderRadius: 14,
+    borderRadius: radii.md,
     padding: 4,
     marginBottom: 20,
   },
   toggleBtn: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: "center" as any,
-  } as any,
-  toggleActive: { backgroundColor: "#2A3825" },
-  toggleText: { fontFamily: "Manrope_700Bold", fontSize: 13, color: "#2A3825", letterSpacing: 0.3 },
+    borderRadius: radii.sm,
+    alignItems: "center",
+  },
+  toggleActive: { backgroundColor: colors.ink },
+  toggleText: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 13,
+    color: colors.ink,
+    letterSpacing: 0.3,
+  },
   toggleTextActive: { color: "#fff" },
 
   label: {
-    fontFamily: "Manrope_800ExtraBold",
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 10,
     letterSpacing: 1.8,
-    color: "#8A9E82",
+    color: colors.sageDim,
     marginTop: 14,
     marginBottom: 6,
-    textTransform: "uppercase" as any,
+    textTransform: "uppercase",
   },
   input: {
-    backgroundColor: "#FAFCF6",
-    borderRadius: 14,
+    backgroundColor: colors.paper,
+    borderRadius: radii.md,
     padding: 14,
     fontSize: 15,
-    color: "#2A3825",
+    fontFamily: fonts.bodyMedium,
+    color: colors.ink,
     borderWidth: 0.5,
-    borderColor: "rgba(42,56,37,0.12)",
+    borderColor: colors.cardBorderInk,
   },
 
   err: {
-    fontFamily: "Manrope_600SemiBold",
+    fontFamily: fonts.bodySemi,
     fontSize: 13,
-    color: "#B4472E",
+    color: colors.error,
     marginTop: 14,
-    textAlign: "center" as any,
+    textAlign: "center",
   },
 
   submit: {
     marginTop: 22,
-    backgroundColor: "rgba(42,56,37,0.97)",
-    borderRadius: 16,
+    backgroundColor: colors.ink,
+    borderRadius: radii.md,
     paddingVertical: 15,
-    alignItems: "center" as any,
-  } as any,
+    alignItems: "center",
+  },
   submitDisabled: { opacity: 0.5 },
-  submitText: { fontFamily: "Manrope_700Bold", color: "#fff", fontSize: 15, letterSpacing: 0.3 },
-
-  forgot: {
-    textAlign: "center" as any,
-    color: "#5A9A4E",
-    fontSize: 13,
-    fontWeight: "600",
-    marginTop: 16,
+  submitText: {
+    fontFamily: fonts.bodyBold,
+    color: "#fff",
+    fontSize: 15,
+    letterSpacing: 0.3,
   },
 
-  legal: {
-    textAlign: "center" as any,
-    color: "#A8B8A2",
-    fontSize: 11,
-    marginTop: 28,
-    lineHeight: 16,
+  forgot: {
+    textAlign: "center",
+    color: colors.accentInk,
+    fontSize: 13,
+    fontFamily: fonts.bodyBold,
+    marginTop: 16,
   },
 });

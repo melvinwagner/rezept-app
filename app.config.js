@@ -10,7 +10,7 @@ module.exports = ({ config }) => ({
     name: "Rezept App",
     slug: "rezept-app",
     scheme: "rezept-app",
-    version: "1.4.0-alpha.1",
+    version: "1.5.0-alpha.1",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -20,7 +20,10 @@ module.exports = ({ config }) => ({
       resizeMode: "contain",
       backgroundColor: "#ffffff",
     },
-    ios: { supportsTablet: true },
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: "com.dawg.app",
+    },
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
@@ -28,6 +31,7 @@ module.exports = ({ config }) => ({
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
+      package: "com.dawg.app",
     },
     web: { favicon: "./assets/favicon.png" },
     plugins: ["expo-router"],
