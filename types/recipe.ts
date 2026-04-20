@@ -3,6 +3,7 @@ export interface Ingredient {
   unit: string | null;
   name: string;
   search?: string;
+  weight_g?: number | null;
 }
 
 export interface Macros {

@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 import { Recipe, Ingredient, Macros } from "../types/recipe";
+import { supabase } from "./supabase";
 
 const BASE_URL =
   (Constants.expoConfig?.extra?.apiUrl as string) || "http://localhost:3001";
@@ -43,6 +44,11 @@ export function getApiKey(): string {
 export async function generateRecipe(videoUrl: string): Promise<Recipe> {
   const body: Record<string, string> = { videoUrl };
   if (API_KEY) body.apiKey = API_KEY;
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.id) body.userId = user.id;
+  } catch {}
 
   const response = await fetch(PROXY_URL, {
     method: "POST",

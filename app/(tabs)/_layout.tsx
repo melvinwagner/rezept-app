@@ -5,8 +5,6 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#fff",
-        tabBarInactiveTintColor: "rgba(255,255,255,0.5)",
         headerStyle: {
           backgroundColor: "rgba(123, 170, 110, 0.85)",
           borderBottomWidth: 0,
@@ -14,12 +12,24 @@ export default function TabLayout() {
           elevation: 0,
         } as any,
         headerTintColor: "#fff",
-        headerTitleStyle: { fontWeight: "600", fontSize: 18, letterSpacing: 0.5 },
+        headerTitleStyle: {
+          fontFamily: "FrankRuhlLibre_900Black",
+          fontSize: 18,
+          letterSpacing: 0.3,
+        },
+        headerRight: () => (
+          <Image
+            source={require("../../assets/dawg-logo.png")}
+            style={{ width: 30, height: 30, marginRight: 14 }}
+            resizeMode="contain"
+          />
+        ),
         tabBarLabelStyle: {
+          fontFamily: "Manrope_700Bold",
           fontSize: 9,
-          fontWeight: "500",
           marginTop: 1,
-          letterSpacing: 0.2,
+          letterSpacing: 1.2,
+          textTransform: "uppercase",
         },
         tabBarStyle: {
           backgroundColor: "rgba(42, 56, 37, 0.97)",
@@ -43,7 +53,9 @@ export default function TabLayout() {
           borderRadius: 14,
           marginHorizontal: 2,
         },
-        tabBarActiveBackgroundColor: "rgba(255, 255, 255, 0.13)",
+        tabBarActiveBackgroundColor: "rgba(184, 208, 136, 0.18)",
+        tabBarActiveTintColor: "#B8D088",
+        tabBarInactiveTintColor: "rgba(255,255,255,0.55)",
       }}
     >
       <Tabs.Screen
@@ -51,13 +63,6 @@ export default function TabLayout() {
         options={{
           title: "DAWG",
           tabBarLabel: "Start",
-          headerRight: () => (
-            <Image
-              source={require("../../assets/dawg-logo.png")}
-              style={{ width: 30, height: 30, marginRight: 14 }}
-              resizeMode="contain"
-            />
-          ),
           tabBarIcon: ({ focused }) => (
             <Image
               source={require("../../assets/dawg-logo.png")}

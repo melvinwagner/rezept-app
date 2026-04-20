@@ -11,6 +11,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { setApiKey, getApiKey } from "../../services/api";
+import { signOut } from "../../services/auth";
 
 const API_KEY_STORAGE = "claude_api_key";
 
@@ -314,6 +315,24 @@ export default function SettingsScreen() {
           }}
         >
           <Text style={styles.saveButtonText}>Onboarding öffnen</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Abmelden</Text>
+        <Text style={styles.cardDesc}>
+          Beendet deine Session. Du kannst dich jederzeit wieder einloggen.
+        </Text>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={async () => {
+            try {
+              await signOut();
+              router.replace("/auth");
+            } catch {}
+          }}
+        >
+          <Text style={styles.saveButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>
 

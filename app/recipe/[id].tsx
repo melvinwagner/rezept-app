@@ -17,6 +17,7 @@ import { getRecipes, updateRecipe } from "../../services/storage";
 import { recalculateNutrition } from "../../services/api";
 import { percentDailyValue } from "../../services/dailyValues";
 import { Recipe, Ingredient, Macros } from "../../types/recipe";
+import { AccentText } from "../../components/AccentText";
 
 const ADD_UNIT_OPTIONS = ["g", "ml"];
 
@@ -39,16 +40,35 @@ function UnitPicker({ value, onChange }: { value: string | null; onChange: (v: s
   );
 }
 
+const NATIVE_UNITS = new Set(["g", "kg", "ml", "l"]);
+
+function roundAmount(n: number): string {
+  let v = n;
+  if (v >= 100) v = Math.round(v / 5) * 5;
+  else if (v >= 10) v = Math.round(v);
+  else v = Math.round(v * 10) / 10;
+  return v % 1 === 0 ? v.toString() : v.toFixed(1);
+}
+
 function formatIngredient(ing: Ingredient, scale: number): string {
-  if (ing.amount != null) {
-    let scaled = ing.amount * scale;
-    if (scaled >= 100) scaled = Math.round(scaled / 5) * 5;
-    else if (scaled >= 10) scaled = Math.round(scaled);
-    else scaled = Math.round(scaled * 10) / 10;
-    const amountStr = scaled % 1 === 0 ? scaled.toString() : scaled.toFixed(1);
-    return ing.unit ? `${amountStr} ${ing.unit} ${ing.name}` : `${amountStr} ${ing.name}`;
+  if (ing.amount == null) return ing.name;
+
+  const amountStr = roundAmount(ing.amount * scale);
+  const unitLower = (ing.unit || "").toLowerCase();
+  const isNative = NATIVE_UNITS.has(unitLower);
+
+  // Native Einheit (g, kg, ml, l) → klassisch
+  if (isNative) return `${amountStr} ${ing.unit} ${ing.name}`;
+
+  // Mit weight_g → Gramm vorne, Original dahinter
+  if (typeof ing.weight_g === "number" && ing.weight_g > 0) {
+    const grams = Math.round(ing.weight_g * scale);
+    const tail = ing.unit ? `${amountStr} ${ing.unit}` : amountStr;
+    return `${grams}g ${ing.name} · ${tail}`;
   }
-  return ing.name;
+
+  // Kein weight_g (Prise, Tropfen …) → klassisch
+  return ing.unit ? `${amountStr} ${ing.unit} ${ing.name}` : `${amountStr} ${ing.name}`;
 }
 
 export default function RecipeDetailScreen() {
@@ -98,17 +118,28 @@ export default function RecipeDetailScreen() {
       updated[index] = { ...updated[index], unit: value || null };
     } else if (field === "name") {
       updated[index] = { ...updated[index], name: value };
+    } else if (field === "weight_g") {
+      updated[index] = { ...updated[index], weight_g: value ? parseFloat(value) || null : null };
     }
     setRecipe({ ...recipe, ingredients: updated });
   };
 
   const handleAddIngredient = () => {
     if (!recipe || !newIngName.trim()) return;
+    const amountNum = newIngAmount ? parseFloat(newIngAmount) : null;
+    const unitLower = newIngUnit.toLowerCase();
+    // Bei nativen Einheiten: weight_g aus amount+unit ableiten; sonst null (User kann später editieren).
+    let weight_g: number | null = null;
+    if (amountNum != null) {
+      if (unitLower === "g" || unitLower === "ml" || !unitLower) weight_g = amountNum;
+      else if (unitLower === "kg" || unitLower === "l") weight_g = amountNum * 1000;
+    }
     const newIng: Ingredient = {
-      amount: newIngAmount ? parseFloat(newIngAmount) : null,
+      amount: amountNum,
       unit: newIngUnit || null,
       name: newIngName.trim(),
       search: newIngName.trim(),
+      weight_g,
     };
     setRecipe({ ...recipe, ingredients: [...recipe.ingredients, newIng] });
     setNewIngName("");
@@ -183,7 +214,7 @@ export default function RecipeDetailScreen() {
           )}
         </View>
         <View style={styles.recipeHeaderText}>
-          <Text style={styles.title}>{recipe.title}</Text>
+          <AccentText style={styles.title}>{recipe.title}</AccentText>
           <Text style={styles.description}>{recipe.description}</Text>
         </View>
       </View>
@@ -229,23 +260,42 @@ export default function RecipeDetailScreen() {
       </View>
       {editMode ? (
         <View style={styles.ingredientsList}>
-          {recipe.ingredients.map((ing, i) => (
-            <View key={i} style={styles.editRow}>
-              <TextInput
-                style={styles.editAmount}
-                value={ing.amount != null ? String(ing.amount) : ""}
-                onChangeText={(v) => handleUpdateIngredient(i, "amount", v)}
-                keyboardType="numeric"
-                placeholder="-"
-                placeholderTextColor="#C2D0BC"
-              />
-              <Text style={styles.editUnitLabel}>{ing.unit || ""}</Text>
-              <Text style={styles.editNameLabel} numberOfLines={1}>{ing.name}</Text>
-              <TouchableOpacity onPress={() => handleDeleteIngredient(i)} style={styles.deleteBtn}>
-                <Text style={styles.deleteBtnText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+          {recipe.ingredients.map((ing, i) => {
+            const unitLower = (ing.unit || "").toLowerCase();
+            const isNative = NATIVE_UNITS.has(unitLower);
+            const hasWeight = typeof ing.weight_g === "number" && ing.weight_g > 0;
+            // Bei Nicht-nativen Einheiten mit weight_g: Gramm editieren. Sonst: amount.
+            const editGrams = !isNative && hasWeight;
+            return (
+              <View key={i} style={styles.editRow}>
+                <TextInput
+                  style={styles.editAmount}
+                  value={
+                    editGrams
+                      ? (ing.weight_g != null ? String(ing.weight_g) : "")
+                      : (ing.amount != null ? String(ing.amount) : "")
+                  }
+                  onChangeText={(v) =>
+                    handleUpdateIngredient(i, editGrams ? "weight_g" : "amount", v)
+                  }
+                  keyboardType="numeric"
+                  placeholder="-"
+                  placeholderTextColor="#C2D0BC"
+                />
+                <Text style={styles.editUnitLabel}>
+                  {editGrams ? "g" : (ing.unit || "")}
+                </Text>
+                <Text style={styles.editNameLabel} numberOfLines={1}>
+                  {editGrams && ing.amount != null
+                    ? `${ing.name} · ${ing.amount} ${ing.unit}`
+                    : ing.name}
+                </Text>
+                <TouchableOpacity onPress={() => handleDeleteIngredient(i)} style={styles.deleteBtn}>
+                  <Text style={styles.deleteBtnText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
 
           <View style={styles.addSection}>
             <Text style={styles.addLabel}>Zutat hinzufügen</Text>
@@ -432,7 +482,10 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#EEF2EA" },
   errorText: { fontSize: 16, color: "#98AE92" },
   titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, gap: 10 },
-  title: { fontSize: 21, fontWeight: "700", color: "#2A3825", lineHeight: 27, marginBottom: 5, letterSpacing: -0.3 },
+  title: {
+    fontFamily: "FrankRuhlLibre_900Black",
+    fontSize: 26, color: "#2A3825", lineHeight: 30, marginBottom: 6, letterSpacing: -0.5,
+  },
   creatorBadge: {
     alignItems: "center", backgroundColor: G, borderRadius: 8,
     paddingHorizontal: 8, paddingVertical: 4, marginTop: 8, maxWidth: 120,
@@ -461,7 +514,10 @@ const styles = StyleSheet.create({
   servingsButtonText: { color: "rgba(255,255,255,0.9)", fontSize: 11, fontWeight: "600", lineHeight: 13, textAlign: "center" as any },
   servingsValue: { fontSize: 14, fontWeight: "700", color: "rgba(255,255,255,0.9)", minWidth: 14, textAlign: "center" as any },
 
-  sectionTitle: { fontSize: 18, fontWeight: "700", color: "#2A3825", marginBottom: 14, letterSpacing: -0.2 },
+  sectionTitle: {
+    fontFamily: "FrankRuhlLibre_700Bold",
+    fontSize: 22, color: "#2A3825", marginBottom: 14, letterSpacing: -0.3,
+  },
   ingredientsList: {
     backgroundColor: W(0.55), borderRadius: 20, padding: 16, marginBottom: 24,
     borderWidth: 0.5, borderColor: W(0.75),

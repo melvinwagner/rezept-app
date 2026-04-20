@@ -103,25 +103,25 @@ export default function ProfileScreen() {
 
       <View style={styles.settings}>
         <Pressable style={styles.settingsItem} onPress={() => setShowEditor(true)}>
-          <Text style={styles.settingsIcon}>✎</Text>
+          <Text style={styles.settingsNum}>01</Text>
           <Text style={styles.settingsText}>Profil bearbeiten</Text>
           <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
         <View style={styles.settingsDivider} />
         <Pressable style={styles.settingsItem}>
-          <Text style={styles.settingsIcon}>🌿</Text>
+          <Text style={styles.settingsNum}>02</Text>
           <Text style={styles.settingsText}>Ernährungspräferenzen</Text>
           <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
         <View style={styles.settingsDivider} />
         <Pressable style={styles.settingsItem}>
-          <Text style={styles.settingsIcon}>🔗</Text>
+          <Text style={styles.settingsNum}>03</Text>
           <Text style={styles.settingsText}>Socials verknüpfen</Text>
           <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
         <View style={styles.settingsDivider} />
         <Pressable style={styles.settingsItem}>
-          <Text style={styles.settingsIcon}>📤</Text>
+          <Text style={styles.settingsNum}>04</Text>
           <Text style={styles.settingsText}>Karte teilen</Text>
           <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
@@ -158,12 +158,12 @@ const styles = StyleSheet.create({
   } as any,
   tipText: {
     flex: 1,
+    fontFamily: "Manrope_500Medium",
     fontSize: 12,
     color: "#2A4220",
-    fontWeight: "600",
-    lineHeight: 16,
+    lineHeight: 17,
   },
-  tipClose: { fontSize: 16, color: "#5A9A4E", fontWeight: "700", paddingHorizontal: 4 },
+  tipClose: { fontFamily: "Manrope_700Bold", fontSize: 16, color: "#5A9A4E", paddingHorizontal: 4 },
 
   settings: {
     backgroundColor: "rgba(255,255,255,0.6)",
@@ -181,17 +181,25 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   settingsIcon: { fontSize: 15, color: "#5A9A4E", width: 20, textAlign: "center" as any },
-  settingsText: { flex: 1, fontSize: 14, color: "#2A3825", fontWeight: "600" as any },
+  settingsNum: {
+    fontFamily: "Manrope_800ExtraBold",
+    fontSize: 11,
+    color: "#A8B8A2",
+    width: 22,
+    letterSpacing: 0.5,
+    textAlign: "center" as any,
+  },
+  settingsText: { flex: 1, fontFamily: "Manrope_600SemiBold", fontSize: 14, color: "#2A3825", letterSpacing: -0.1 },
   settingsChevron: { fontSize: 18, color: "rgba(42,56,37,0.25)" },
   settingsDivider: { height: 0.5, backgroundColor: "rgba(42,56,37,0.06)", marginLeft: 48 },
 
   version: {
+    fontFamily: "Manrope_700Bold",
     textAlign: "center" as any,
     color: "#A8B8A2",
-    fontSize: 11,
+    fontSize: 10,
     marginTop: 20,
-    letterSpacing: 1.5,
+    letterSpacing: 2,
     textTransform: "uppercase" as any,
-    fontWeight: "600" as any,
   },
 });

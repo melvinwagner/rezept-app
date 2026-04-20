@@ -26,6 +26,7 @@ const recipeLimiter = rateLimit({
 });
 
 const nodemailer = require("nodemailer");
+const { createClient } = require("@supabase/supabase-js");
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
 const USDA_API_URL = "https://api.nal.usda.gov/fdc/v1/foods/search";
 const USDA_API_KEY = process.env.USDA_API_KEY || "";
@@ -33,6 +34,37 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY || "";
 const OFF_SEARCH_URL = "https://world.openfoodfacts.org/api/v2/search";
 const OFF_USER_AGENT = "RezeptApp/1.0 (melvin.wagner97@gmail.com)";
+
+// Supabase Admin-Client für serverseitiges Event-Logging (bypasst RLS via service_role).
+const SUPABASE_URL = process.env.SUPABASE_URL || "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const supabaseAdmin =
+  SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      })
+    : null;
+
+function detectPlatform(url) {
+  if (/tiktok\.com/i.test(url)) return "tiktok";
+  if (/instagram\.com/i.test(url)) return "instagram";
+  if (/youtube\.com|youtu\.be/i.test(url)) return "youtube";
+  return "other";
+}
+
+async function logUsageEvent(userId, event, metadata = {}) {
+  if (!supabaseAdmin) return;
+  try {
+    const { error } = await supabaseAdmin.from("usage_events").insert({
+      user_id: userId || null,
+      event,
+      metadata,
+    });
+    if (error) console.error("Usage log error:", error.message);
+  } catch (err) {
+    console.error("Usage log failed:", err.message);
+  }
+}
 
 // Umrechnungstabelle: Einheit -> Gramm
 const UNIT_TO_GRAMS = {
@@ -275,7 +307,11 @@ async function calculateNutrition(ingredients, servings) {
       continue;
     }
 
-    const weightG = unitToGrams(ing.amount, ing.unit);
+    // Bevorzuge weight_g (Claude-geschätzt, zutatenspezifisch); Fallback: alte UnitToGrams-Tabelle.
+    const weightG =
+      typeof ing.weight_g === "number" && ing.weight_g > 0
+        ? ing.weight_g
+        : unitToGrams(ing.amount, ing.unit);
     const factor = weightG / 100;
 
     console.log(`  ${ing.name}: ${weightG}g, ${Math.round(nutrition.kcal * factor)} kcal (source: ${nutrition.source})`);
@@ -501,8 +537,10 @@ function parseVTT(vttContent) {
 }
 
 app.post("/api/generate-recipe", recipeLimiter, async (req, res) => {
-  const { videoUrl } = req.body;
+  const { videoUrl, userId } = req.body;
   const apiKey = req.body.apiKey || process.env.CLAUDE_API_KEY;
+  const startedAt = Date.now();
+  const platform = videoUrl ? detectPlatform(videoUrl) : "other";
 
   if (!apiKey) {
     return res.status(500).json({ error: "Server ist nicht konfiguriert (kein Claude Key)." });
@@ -514,6 +552,13 @@ app.post("/api/generate-recipe", recipeLimiter, async (req, res) => {
   const cached = getCachedRecipe(videoUrl);
   if (cached) {
     console.log("Cache hit for videoUrl – returning cached recipe.");
+    logUsageEvent(userId, "recipe_generated", {
+      videoUrl,
+      title: cached.title,
+      platform,
+      cached: true,
+      duration_ms: Date.now() - startedAt,
+    });
     return res.json(cached);
   }
 
@@ -586,14 +631,30 @@ SPRACHE & BEGRIFFE - WICHTIG:
 - Keine gezwungenen Eindeutschungen wie "Heißluftfritteuse", wenn "Air Fryer" geläufig ist.
 
 EINHEITEN - WICHTIG:
-- Alle Mengenangaben MÜSSEN in europäischen/metrischen Einheiten angegeben werden. Erlaubte Einheiten: "g", "kg", "ml", "l", "EL", "TL", "Stück", "Prise", "Scheibe", "Zehe". KEINE anderen Einheiten.
+- Alle Mengenangaben MÜSSEN in europäischen/metrischen Einheiten angegeben werden. Erlaubte Einheiten: "g", "kg", "ml", "l", "EL", "TL", "Stück", "Prise", "Scheibe", "Zehe", "Dose", "Bund", "Blatt", "Becher", "Packung", "Tropfen", "Spritzer", "Handvoll". KEINE anderen Einheiten.
 - BEVORZUGE g oder ml gegenüber Stück/EL/TL, wann immer eine sinnvolle Gramm-Angabe möglich ist (z.B. "150 g Mehl" statt "1 Tasse Mehl").
 - Rechne amerikanische Einheiten automatisch um: 1 cup Flüssigkeit = 240ml, 1 cup Mehl = 130g, 1 cup Zucker = 200g, 1 cup Butter = 225g, 1 cup Käse gerieben = 100g, 1 oz = 28g, 1 lb = 450g, 1 tbsp = 1 EL, 1 tsp = 1 TL, 1 stick Butter = 115g.
 - Runde die Ergebnisse auf schöne, praktische Zahlen (z.B. 236ml → 240ml, 227g → 225g, 113g → 115g, 28g → 30g).
 - Temperaturen in °C (falls Fahrenheit: (F-32) × 5/9, gerundet auf 5er-Schritte).
 - "servings" MUSS eine Zahl sein (z.B. 2, nicht "2 Portionen").
-- Jede Zutat MUSS ein Objekt sein mit "amount" (Zahl oder null), "unit" (String oder null) und "name" (String). Zutaten ohne Mengenangabe (z.B. "Salz nach Geschmack") haben amount: null und unit: null.
+- Jede Zutat MUSS ein Objekt sein mit "amount" (Zahl oder null), "unit" (String oder null), "name" (String) und "weight_g" (Zahl in Gramm oder null). Zutaten ohne Mengenangabe (z.B. "Salz nach Geschmack") haben amount: null, unit: null und weight_g: null.
 - Zutatenreihenfolge: IMMER in der Reihenfolge, in der sie in der Caption erscheinen — nicht umsortieren.
+
+WEIGHT_G - PFLICHT-SCHÄTZUNG:
+- Für JEDE Zutat mit angegebener Menge MUSST du "weight_g" schätzen (Gesamtgewicht in Gramm der verwendeten Zutat).
+- Wenn die Einheit bereits "g" oder "kg" oder "ml" oder "l" ist → weight_g = amount in Gramm umgerechnet (z.B. 200g → 200, 1kg → 1000, 240ml → 240, 1l → 1000).
+- Bei "Stück" nutze typische Einzelgewichte: Ei 60g, Zwiebel 150g, große Zwiebel 200g, kleine Zwiebel 80g, Knoblauchzehe 5g, Apfel 180g, Tomate 100g, Kirschtomate 15g, Paprika 150g, Banane 120g, Kartoffel 150g, Möhre 80g, Zitrone 100g, Limette 60g, Orange 180g, Avocado 200g, Brötchen 60g, Baguette 250g, Ciabatta 250g.
+- Bei "Scheibe": Brot 30g, Käse 25g, Tomate 8g, Wurst 15g, Zitrone 5g.
+- Bei "Zehe": 5g (Knoblauch).
+- Bei "EL" zutatenabhängig: Mehl 8g, Zucker 12g, Butter 15g, Öl 14ml≈14g, Honig 21g, Senf 15g, Joghurt 15g, Milch 15g, Tomatenmark 15g, Sahne 15g, Kakao 5g, Stärke 8g.
+- Bei "TL" zutatenabhängig: Mehl 2.5g, Zucker 4g, Salz 5g, Backpulver 3g, Kreuzkümmel 2g, Paprikapulver 2g, Cayenne 2g, Zimt 2g, Öl 4.5g, Honig 7g, Vanilleextrakt 4g.
+- Bei "Dose": Tomaten 400g, Mais 150g, Bohnen 240g (Abtropfgewicht), Kokosmilch 400g.
+- Bei "Bund": 25g (Petersilie, Schnittlauch, Koriander, Basilikum).
+- Bei "Blatt": 2g (Gelatine).
+- Bei "Becher": Joghurt/Quark 150g, Sahne 200g.
+- Bei "Packung": Nudeln 500g, Frischkäse 200g, Mehl 1000g, Reis 500g.
+- Bei "Prise", "Spritzer", "Tropfen", "Handvoll": weight_g = null (zu klein für sinnvolle Nährwert-Berechnung).
+- Wenn unsicher: realistisch konservativ schätzen, nicht übertreiben.
 
 Antworte AUSSCHLIESSLICH mit validem JSON im folgenden Format, ohne Markdown-Codeblöcke oder zusätzlichen Text:
 
@@ -603,7 +664,7 @@ Antworte AUSSCHLIESSLICH mit validem JSON im folgenden Format, ohne Markdown-Cod
   "servings": 2,
   "prepTime": "z.B. 5 Min",
   "cookTime": "z.B. 8 Min",
-  "ingredients": [{"amount": 200, "unit": "g", "name": "Zutat 1", "search": "ingredient 1 english"}, {"amount": 3, "unit": "EL", "name": "Zutat 2", "search": "ingredient 2 english"}, {"amount": null, "unit": null, "name": "Salz nach Geschmack", "search": "salt"}],
+  "ingredients": [{"amount": 200, "unit": "g", "name": "Zutat 1", "weight_g": 200, "search": "ingredient 1 english"}, {"amount": 1, "unit": "Stück", "name": "große Zwiebel", "weight_g": 200, "search": "onion"}, {"amount": 3, "unit": "EL", "name": "Butter", "weight_g": 45, "search": "butter"}, {"amount": null, "unit": null, "name": "Salz nach Geschmack", "weight_g": null, "search": "salt"}],
   "steps": ["Schritt 1 detailliert", "Schritt 2 detailliert"],
   "allergens": ["Gluten", "Milch"],
   "tags": ["vegetarisch"]
@@ -685,9 +746,22 @@ HINWEIS zu Tags:
     }
 
     setCachedRecipe(videoUrl, recipe);
+    logUsageEvent(userId, "recipe_generated", {
+      videoUrl,
+      title: recipe.title,
+      platform,
+      cached: false,
+      duration_ms: Date.now() - startedAt,
+    });
     res.json(recipe);
   } catch (err) {
     console.error("Error:", err.message);
+    logUsageEvent(userId, "recipe_generation_failed", {
+      videoUrl,
+      platform,
+      error: err.message,
+      duration_ms: Date.now() - startedAt,
+    });
     res.status(500).json({ error: err.message });
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });

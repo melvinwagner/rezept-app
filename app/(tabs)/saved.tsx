@@ -17,6 +17,7 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { getRecipes, deleteRecipe, getCookbooks, addCookbook, deleteCookbook, updateRecipe, getCookbookMeta, saveCookbookMeta, renameCookbookMeta, CookbookMeta } from "../../services/storage";
 import { Recipe } from "../../types/recipe";
+import { AccentText } from "../../components/AccentText";
 
 const CARD_COLORS = [
   ["#6B8B68", "#1E2E1A"],  // Waldgrün
@@ -486,7 +487,7 @@ export default function SavedScreen() {
           >
             <Text style={styles.backText}>‹ Kochbuch</Text>
           </Pressable>
-          <Text style={styles.detailTitle}>{selectedCookbook}</Text>
+          <AccentText style={styles.detailTitle} accentStyle={{ color: "#B8D088" }}>{selectedCookbook}</AccentText>
           <Text style={styles.detailCount}>{categoryRecipes.length} {categoryRecipes.length === 1 ? "Rezept" : "Rezepte"}</Text>
         </View>
         <ScrollView
@@ -610,12 +611,12 @@ export default function SavedScreen() {
           />
         </View>
 
-        <Text style={styles.sectionLabel}>Meine Kochbücher</Text>
+        <AccentText style={styles.sectionLabel}>Meine Kochbücher</AccentText>
         <View style={styles.grid}>
           {filteredCookbooks.map((name, i) => renderCard(name, i))}
         </View>
 
-        <Text style={styles.sectionLabel}>Weitere Kochbücher</Text>
+        <AccentText style={styles.sectionLabel}>Weitere Kochbücher</AccentText>
         <ScrollView
           ref={sliderRef}
           horizontal
@@ -819,7 +820,8 @@ const styles = StyleSheet.create({
   } as any,
 
   sectionLabel: {
-    fontSize: 17, fontWeight: "700", color: "#2A3825", letterSpacing: -0.2,
+    fontFamily: "FrankRuhlLibre_700Bold",
+    fontSize: 22, color: "#2A3825", letterSpacing: -0.3,
     paddingHorizontal: 16, paddingTop: 22, paddingBottom: 12,
   },
 
@@ -1043,8 +1045,14 @@ const styles = StyleSheet.create({
   } as any,
   backButton: { marginBottom: 8 },
   backText: { color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: "600" },
-  detailTitle: { fontSize: 22, fontWeight: "800", color: "#fff", letterSpacing: -0.3 },
-  detailCount: { fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 3 },
+  detailTitle: {
+    fontFamily: "FrankRuhlLibre_900Black",
+    fontSize: 32, color: "#fff", letterSpacing: -0.6, lineHeight: 36,
+  },
+  detailCount: {
+    fontFamily: "Manrope_600SemiBold",
+    fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 4, letterSpacing: 0.3,
+  },
 
   // === MASONRY (Layout 4) ===
   masonryScrollContent: { padding: 12, paddingBottom: 90 },
@@ -1194,14 +1202,17 @@ const styles = StyleSheet.create({
   recipeCardMain: { flexDirection: "row", alignItems: "center" },
   recipeThumb: { width: 85, height: 95, resizeMode: "cover", borderRadius: 0 } as any,
   recipeCardBody: { flex: 1, padding: 14 },
-  recipeTitle: { fontSize: 15, fontWeight: "700", color: "#2A3825", marginBottom: 3, letterSpacing: -0.2 },
-  recipeDesc: { fontSize: 11, color: "#8A9E82", marginBottom: 6, lineHeight: 16 },
+  recipeTitle: {
+    fontFamily: "FrankRuhlLibre_700Bold",
+    fontSize: 17, color: "#2A3825", marginBottom: 3, letterSpacing: -0.2, lineHeight: 21,
+  },
+  recipeDesc: { fontFamily: "Manrope_500Medium", fontSize: 11, color: "#8A9E82", marginBottom: 6, lineHeight: 16 },
   recipeMeta: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
-  recipeMetaText: { fontSize: 10, color: "#5A9A4E", fontWeight: "600" },
+  recipeMetaText: { fontFamily: "Manrope_600SemiBold", fontSize: 10, color: "#5A9A4E", letterSpacing: 0.2 },
   recipeMetaDot: { marginHorizontal: 4, color: "rgba(42,56,37,0.15)" },
   starsRow: { flexDirection: "row", gap: 2 },
-  star: { fontSize: 15, color: "rgba(42,56,37,0.12)" },
-  starActive: { color: "#D4A93C" },
+  star: { fontSize: 15, color: "rgba(42,56,37,0.18)" },
+  starActive: { color: "#5A9A4E" },
 
   // === ACTIONS ===
   actionRow: {

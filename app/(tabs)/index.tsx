@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as Clipboard from "expo-clipboard";
 import { generateRecipe, setApiKey, getApiKey, recalculateNutrition } from "../../services/api";
 import { saveRecipe, getCookbooks, addCookbook } from "../../services/storage";
 import { Recipe, Ingredient, Macros, ImageTransform } from "../../types/recipe";
@@ -100,7 +101,7 @@ function GemueseDesTages() {
   return (
     <View style={styles.gemueseCard}>
       <View style={styles.gemueseHeader}>
-        <Text style={styles.gemueseLabel}>🥬  Gemüse des Tages</Text>
+        <Text style={styles.gemueseLabel}>— Zutat der Woche —</Text>
       </View>
       <Image source={g.img} style={styles.gemueseImage} resizeMode="cover" />
       <Text style={styles.gemuese_name}>{g.name}</Text>
@@ -228,14 +229,29 @@ export default function HomeScreen() {
     });
   }, []);
 
+  const isSupportedVideoUrl = (s: string) => {
+    return /^(https?:\/\/)?(www\.)?(tiktok\.com|instagram\.com|youtube\.com|youtu\.be)\//i.test(s.trim());
+  };
+
   const handleGenerate = async () => {
     Keyboard.dismiss();
-    const trimmed = url.trim();
     setError("");
     setSuccess("");
 
+    let trimmed = url.trim();
+
     if (!trimmed) {
-      setError("Bitte gib eine URL ein.");
+      try {
+        const clip = (await Clipboard.getStringAsync()).trim();
+        if (clip && isSupportedVideoUrl(clip)) {
+          trimmed = clip;
+          setUrl(clip);
+        }
+      } catch {}
+    }
+
+    if (!trimmed) {
+      setError("Bitte gib eine URL ein oder kopiere einen Video-Link.");
       return;
     }
 
@@ -449,16 +465,6 @@ export default function HomeScreen() {
 
         {!recipe && (
           <>
-            <View style={styles.proCardSmall}>
-              <View style={styles.proSmallLeft}>
-                <Text style={styles.proSmallTitle}>DAWG <Text style={styles.proSmallBadge}>PRO</Text></Text>
-                <Text style={styles.proSmallText}>Unbegrenzt Rezepte · Keine Werbung</Text>
-              </View>
-              <Pressable style={styles.proSmallBtn}>
-                <Text style={styles.proSmallBtnText}>Gratis testen</Text>
-              </Pressable>
-            </View>
-
             <View style={styles.header}>
               <Text style={styles.tagline}>
                 Jedes <Text style={styles.taglineAccent}>Video</Text>
@@ -635,16 +641,28 @@ export default function HomeScreen() {
             ) : (
               recipe.ingredients.map((ing, i) => {
                 const scale = originalServings > 0 ? currentServings / originalServings : 1;
+                const nativeSet = new Set(["g", "kg", "ml", "l"]);
                 let display = "";
-                if (ing.amount != null) {
+                if (ing.amount == null) {
+                  display = ing.name;
+                } else {
                   let scaled = ing.amount * scale;
                   if (scaled >= 100) scaled = Math.round(scaled / 5) * 5;
                   else if (scaled >= 10) scaled = Math.round(scaled);
                   else scaled = Math.round(scaled * 10) / 10;
                   const amountStr = scaled % 1 === 0 ? scaled.toString() : scaled.toFixed(1);
-                  display = ing.unit ? `${amountStr} ${ing.unit} ${ing.name}` : `${amountStr} ${ing.name}`;
-                } else {
-                  display = ing.name;
+                  const unitLower = (ing.unit || "").toLowerCase();
+                  const isNative = nativeSet.has(unitLower);
+                  const hasWeight = typeof ing.weight_g === "number" && ing.weight_g > 0;
+                  if (isNative) {
+                    display = `${amountStr} ${ing.unit} ${ing.name}`;
+                  } else if (hasWeight) {
+                    const grams = Math.round((ing.weight_g as number) * scale);
+                    const tail = ing.unit ? `${amountStr} ${ing.unit}` : amountStr;
+                    display = `${grams}g ${ing.name} · ${tail}`;
+                  } else {
+                    display = ing.unit ? `${amountStr} ${ing.unit} ${ing.name}` : `${amountStr} ${ing.name}`;
+                  }
                 }
                 return (
                   <Text key={i} style={styles.ingredient}>
@@ -935,12 +953,19 @@ const M = (a: number) => `rgba(123,170,110,${a})`;
 const styles = StyleSheet.create({
   // === BASE ===
   container: { flex: 1, backgroundColor: "#EEF2EA" },
-  scrollContent: { padding: 16, paddingBottom: 110 },
+  scrollContent: { padding: 16, paddingBottom: 140 },
 
   // === LANDING ===
   header: { alignItems: "center", marginBottom: 4, marginTop: 6 },
-  tagline: { fontSize: 36, fontWeight: "900", color: "#2A3825", textAlign: "center", lineHeight: 42, letterSpacing: -1.5 },
-  taglineAccent: { color: "#7BAA6E" },
+  tagline: {
+    fontFamily: "FrankRuhlLibre_900Black",
+    fontSize: 40,
+    color: "#2A3825",
+    textAlign: "center",
+    lineHeight: 44,
+    letterSpacing: -1,
+  },
+  taglineAccent: { color: "#3F7A36", fontFamily: "FrankRuhlLibre_900Black" },
   adPlaceholder: {
     width: "100%" as any,
     height: 80,
@@ -978,7 +1003,7 @@ const styles = StyleSheet.create({
   supported: { flexDirection: "row", justifyContent: "center", gap: 16, marginTop: 14 },
   supportedItem: { flexDirection: "row", alignItems: "center", gap: 5 },
   supportedDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#7BAA6E" },
-  supportedText: { fontSize: 10, color: "#98AE92", fontWeight: "500" },
+  supportedText: { fontFamily: "Manrope_700Bold", fontSize: 10, color: "#98AE92", letterSpacing: 1.2, textTransform: "uppercase" as any },
   input: {
     backgroundColor: W(0.65), borderRadius: 18, padding: 16, fontSize: 15,
     borderWidth: 0.5, borderColor: W(0.8), marginBottom: 12,
@@ -993,7 +1018,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   } as any,
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontSize: 15, fontWeight: "600", letterSpacing: 0.3 },
+  buttonText: { fontFamily: "Manrope_700Bold", color: "#fff", fontSize: 15, letterSpacing: 0.3 },
 
   // === ALERTS ===
   errorBox: { backgroundColor: "rgba(155,68,68,0.07)", borderRadius: 16, padding: 14, marginBottom: 16, borderWidth: 0.5, borderColor: "rgba(155,68,68,0.12)" },
@@ -1132,23 +1157,6 @@ const styles = StyleSheet.create({
   } as any,
   newRecipeButtonText: { color: "#fff", fontSize: 15, fontWeight: "600", letterSpacing: 0.3 },
 
-  // === DAWG PRO CTA (compact) ===
-  proCardSmall: {
-    backgroundColor: G, borderRadius: 16, padding: 14,
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.1)",
-    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-    marginBottom: 10, height: 76,
-  } as any,
-  proSmallLeft: { flex: 1 },
-  proSmallTitle: { color: "#fff", fontSize: 16, fontWeight: "800", marginBottom: 3 },
-  proSmallBadge: { color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: "800", letterSpacing: 1 },
-  proSmallText: { color: "rgba(255,255,255,0.45)", fontSize: 10 },
-  proSmallBtn: {
-    backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10,
-    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.2)", marginLeft: 12,
-  },
-  proSmallBtnText: { color: "#fff", fontSize: 12, fontWeight: "700" },
 
   // === GEMÜSE DES TAGES ===
   gemueseCard: {
@@ -1158,15 +1166,15 @@ const styles = StyleSheet.create({
     overflow: "hidden" as any,
   } as any,
   gemueseHeader: { marginBottom: 12 },
-  gemueseLabel: { fontSize: 10, fontWeight: "700", color: "#8A9E82", letterSpacing: 0.5, textTransform: "uppercase" as any },
+  gemueseLabel: { fontFamily: "Manrope_800ExtraBold", fontSize: 11, color: "#8A9E82", letterSpacing: 1.8, textTransform: "uppercase" as any, textAlign: "center" as any },
   gemueseImage: { width: "100%" as any, height: 160, borderRadius: 14, marginBottom: 12 },
-  gemuese_name: { fontSize: 20, fontWeight: "800", color: "#2A3825", letterSpacing: -0.3, marginBottom: 4 },
-  gemueseText: { fontSize: 13, color: "#6E8868", lineHeight: 19, marginBottom: 14 },
+  gemuese_name: { fontFamily: "FrankRuhlLibre_900Black", fontSize: 26, color: "#2A3825", letterSpacing: -0.5, lineHeight: 30, marginBottom: 6 },
+  gemueseText: { fontFamily: "Manrope_500Medium", fontSize: 13, color: "#6E8868", lineHeight: 19, marginBottom: 14 },
   gemueseBtn: {
     backgroundColor: G, borderRadius: 14, padding: 13, alignItems: "center",
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   },
-  gemuese_btnText: { color: "#fff", fontSize: 13, fontWeight: "600" },
+  gemuese_btnText: { fontFamily: "Manrope_700Bold", color: "#fff", fontSize: 13, letterSpacing: 0.2 },
 
   // === WIDGET SLIDER ===
   widgetSection: { marginTop: 24, marginBottom: 10 },

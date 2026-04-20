@@ -1,15 +1,16 @@
 /**
  * app.config.js — dynamische Expo-Config.
- * Liest `API_URL` aus der Umgebung (z.B. gesetzt beim EAS-Build oder lokal via .env).
- * Fallback: localhost:3001 für Dev.
+ * Liest Umgebungsvariablen aus .env (lokal) oder Build-Env (EAS/Railway).
  */
+require("dotenv").config();
+
 module.exports = ({ config }) => ({
   ...config,
   expo: {
     name: "Rezept App",
     slug: "rezept-app",
     scheme: "rezept-app",
-    version: "1.2.2-alpha.1",
+    version: "1.4.0-alpha.1",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -32,6 +33,8 @@ module.exports = ({ config }) => ({
     plugins: ["expo-router"],
     extra: {
       apiUrl: process.env.API_URL || "http://localhost:3001",
+      supabaseUrl: process.env.SUPABASE_URL || "",
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
     },
   },
 });
