@@ -1,35 +1,41 @@
 import { Tabs } from "expo-router";
 import { Text, Image, View } from "react-native";
+import { colors, fonts } from "../../constants/theme";
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerStyle: {
-          backgroundColor: "rgba(123, 170, 110, 0.85)",
+          backgroundColor: colors.ink,
           borderBottomWidth: 0,
           shadowOpacity: 0,
           elevation: 0,
         } as any,
-        headerTintColor: "#fff",
+        headerTintColor: colors.bg,
         headerTitleStyle: {
-          fontFamily: "FrankRuhlLibre_900Black",
-          fontSize: 18,
-          letterSpacing: 0.3,
+          fontFamily: fonts.headerExtraBold,
+          fontSize: 17,
+          letterSpacing: -0.3,
+          color: colors.bg,
         },
         headerRight: () => (
           <Image
             source={require("../../assets/dawg-logo.png")}
-            style={{ width: 30, height: 30, marginRight: 14 }}
+            style={{
+              width: 28,
+              height: 28,
+              marginRight: 14,
+              tintColor: colors.accentLuminous,
+            }}
             resizeMode="contain"
           />
         ),
         tabBarLabelStyle: {
-          fontFamily: "Manrope_700Bold",
-          fontSize: 9,
+          fontFamily: fonts.headerBold,
+          fontSize: 8.5,
           marginTop: 1,
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
+          letterSpacing: 0.5,
         },
         tabBarStyle: {
           backgroundColor: "rgba(42, 56, 37, 0.97)",
@@ -49,11 +55,12 @@ export default function TabLayout() {
           boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
         } as any,
         tabBarItemStyle: {
-          paddingVertical: 2,
-          borderRadius: 14,
-          marginHorizontal: 2,
+          marginHorizontal: 3,
+          marginVertical: 6,
+          borderRadius: 18,
+          paddingVertical: 4,
         },
-        tabBarActiveBackgroundColor: "rgba(184, 208, 136, 0.18)",
+        tabBarActiveBackgroundColor: "rgba(184, 208, 136, 0.22)",
         tabBarActiveTintColor: "#B8D088",
         tabBarInactiveTintColor: "rgba(255,255,255,0.55)",
       }}

@@ -15,15 +15,19 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Cover, COVER_LAYOUTS, COVER_PALETTE, CoverLayoutId } from "../components/Cover";
+import { colors } from "../constants/theme";
 
+// Onboarding-spezifische Aliase auf Brand-Tokens + lokale Gold-Akzente
 const C = {
-  bg: "#EEF2EA",
+  bg: colors.bg,
   bgWarm: "#F4F7F0",
-  ink: "#2A3825",
+  ink: colors.ink,
   inkSoft: "#6E8868",
   inkMute: "#98AE92",
-  accent: "#7BAA6E",
-  accentDeep: "#5A9A4E",
+  accent: colors.greenLight,
+  accentDeep: colors.green,
+  accentInk: colors.accentInk,
+  accentLuminous: colors.accentLuminous,
   glassDark: "rgba(42, 56, 37, 0.55)",
   glassDarkStrong: "rgba(42, 56, 37, 0.97)",
   gold: "#f4d88f",
@@ -38,45 +42,34 @@ const W = (a: number) => `rgba(255,255,255,${a})`;
 export default function OnboardingScreen() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const total = 7;
+  const total = 6;
 
   const finish = async () => {
     await AsyncStorage.setItem("onboarding_completed", "true");
     router.replace("/(tabs)");
   };
 
-  const loginAndSkip = async () => {
-    // "Anmelden" link – existing account goes straight to home
-    await finish();
-  };
-
-  const register = () => {
-    // Login buttons → slide 1 (start of flow)
-    setStep(1);
-  };
-
   const next = () => setStep((s) => Math.min(total - 1, s + 1));
   const back = () => setStep((s) => Math.max(0, s - 1));
 
   const slides = [
-    <SlideLogin key="0" onRegister={register} onLogin={loginAndSkip} />,
-    <Slide1 key="1" />,
-    <Slide2 key="2" />,
-    <Slide4 key="3" />,
-    <Slide5 key="4" />,
-    <Slide3 key="5" />,
-    <Slide6 key="6" onFinish={finish} />,
+    <Slide1 key="0" />,
+    <Slide2 key="1" />,
+    <Slide4 key="2" />,
+    <Slide5 key="3" />,
+    <Slide3 key="4" />,
+    <Slide6 key="5" onFinish={finish} />,
   ];
 
   return (
     <View style={styles.root}>
-      {step > 0 && <ProgressBar step={step} total={total} onSkip={finish} />}
+      <ProgressBar step={step} total={total} onSkip={finish} />
 
       <View style={{ flex: 1 }} key={step}>
         {slides[step]}
       </View>
 
-      {step > 0 && step < total - 1 && (
+      {step < total - 1 && (
         <BottomNav step={step} total={total} onNext={next} onBack={back} />
       )}
     </View>
@@ -396,7 +389,7 @@ function Slide2() {
       style={{ flex: 1, backgroundColor: C.bg }}
       contentContainerStyle={{ padding: 24, paddingTop: 96, paddingBottom: 120 }}
     >
-      <StepBadge n={3} />
+      <StepBadge n={2} />
       <Title>
         Jedes <Accent>Video</Accent> wird zum <Accent>Rezept</Accent>.
       </Title>
@@ -480,7 +473,7 @@ function Slide4() {
       style={{ flex: 1, backgroundColor: C.bg }}
       contentContainerStyle={{ padding: 24, paddingTop: 88, paddingBottom: 120 }}
     >
-      <StepBadge n={4} />
+      <StepBadge n={3} />
       <Title>
         Zutaten zählen. <Accent>Automatisch.</Accent>
       </Title>
@@ -584,7 +577,7 @@ function Slide5() {
       style={{ flex: 1, backgroundColor: C.bg }}
       contentContainerStyle={{ padding: 24, paddingTop: 96, paddingBottom: 120 }}
     >
-      <StepBadge n={5} />
+      <StepBadge n={4} />
       <Title>
         Jeden Tag{"\n"}etwas <Accent>Neues.</Accent>
       </Title>
@@ -663,7 +656,7 @@ function Slide3() {
       style={{ flex: 1, backgroundColor: C.bg }}
       contentContainerStyle={{ padding: 24, paddingTop: 96, paddingBottom: 120 }}
     >
-      <StepBadge n={6} />
+      <StepBadge n={5} />
       <Title>
         Deine <Accent>Magazine.</Accent>
         {"\n"}Deine Handschrift.
@@ -739,7 +732,7 @@ function Slide6({ onFinish }: { onFinish: () => void }) {
       style={{ flex: 1, backgroundColor: C.bg }}
       contentContainerStyle={{ padding: 20, paddingTop: 64, paddingBottom: 40 }}
     >
-      <StepBadge n={7} />
+      <StepBadge n={6} />
       <Title>
         Du bist der{"\n"}
         <Accent>Autor.</Accent>
@@ -861,7 +854,7 @@ function PickerColors({
 // Shared atoms
 // ──────────────────────────────────────────────────────────────
 function StepBadge({ n }: { n: number }) {
-  return <Text style={styles.stepBadge}>SCHRITT {n} · 7</Text>;
+  return <Text style={styles.stepBadge}>SCHRITT {n} · 6</Text>;
 }
 
 function Title({ children }: { children: React.ReactNode }) {

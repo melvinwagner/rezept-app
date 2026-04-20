@@ -42,6 +42,44 @@ export const colors = {
   deviceFrame: "#0A0D08",           // Device-Rahmen — sage-tinted Schwarz (statt pure #000)
 };
 
+/**
+ * Cookbook-Cover-Paletten — Brand-konforme Gradient-Paare für Ausgaben/Sammlungen.
+ * CARD_COLORS = Hauptkarten (Sage-Familie, alle grün-getönt)
+ * PICKER_COLORS = Erweiterter Picker (erdige Töne für thematische Cookbooks)
+ * Jedes Paar: [light, dark] für LinearGradient.
+ */
+export const palettes = {
+  cookbookCards: [
+    ["#6B8B68", "#1E2E1A"], // Waldgrün
+    ["#8AAA7A", "#2A3E22"], // Salbei
+    ["#A0B488", "#3A5230"], // Olive
+    ["#7A9A8A", "#1E3428"], // Eukalyptus
+    ["#8EAE7E", "#2A4220"], // Matcha
+    ["#80A090", "#243828"], // Moos
+    ["#9EAE8E", "#343E28"], // Thymian
+    ["#7AAA8E", "#1A3424"], // Jade
+    ["#96A87A", "#2A3618"], // Pistazie
+    ["#84967A", "#1E2C16"], // Basilikum
+  ] as ReadonlyArray<readonly [string, string]>,
+
+  cookbookPickers: [
+    ["#6B8B68", "#1E2E1A"], // Waldgrün
+    ["#8AAA7A", "#2A3E22"], // Salbei
+    ["#A09078", "#3A2818"], // Terrakotta
+    ["#9A8A72", "#2E2418"], // Mokka
+    ["#8890A0", "#282E3A"], // Schieferblau
+    ["#A08A8A", "#382828"], // Rosewood
+    ["#90987A", "#2A2E1A"], // Olive
+    ["#7A8A98", "#1E2830"], // Ozean
+    ["#A09A80", "#303018"], // Sand
+    ["#9A8898", "#2E2430"], // Lavendel
+    ["#88A090", "#1E3028"], // Jade
+    ["#B09070", "#3A2010"], // Karamell
+    ["#7898A8", "#1A2A38"], // Nordlicht
+    ["#A8887A", "#302018"], // Zimt
+  ] as ReadonlyArray<readonly [string, string]>,
+};
+
 export const radii = {
   sm: 10,
   md: 14,
@@ -68,10 +106,17 @@ export const spacing = {
  * Body/UI: Manrope — geometrischer Sans, präzise, modern, nicht reflex.
  */
 export const fonts = {
-  // Display (Frank Ruhl Libre)
+  // Display (Frank Ruhl Libre) — editorial serif für Hero-Titel
   displayBold: "FrankRuhlLibre_700Bold",
   displayBlack: "FrankRuhlLibre_900Black",
   displayMedium: "FrankRuhlLibre_500Medium",
+
+  // Header / Kategorie-Titel (Unbounded) — modern geometric, Kontrast zu FrankRuhl
+  headerBold: "Unbounded_700Bold",
+  headerExtraBold: "Unbounded_800ExtraBold",
+
+  // Eyebrows / All-Caps Labels (Syncopate) — architektonisch, viel spacing
+  eyebrowCaps: "Syncopate_700Bold",
 
   // Body / UI (Manrope)
   bodyRegular: "Manrope_400Regular",
@@ -101,17 +146,17 @@ export const typography = {
   caption:   { fontFamily: fonts.bodyMedium,  fontSize: 11, lineHeight: 14 },
   button:    { fontFamily: fonts.bodyBold,    fontSize: 15, letterSpacing: 0.2 },
 
-  // Eyebrow / UPPERCASE labels (Manrope ExtraBold mit letter-spacing)
+  // Eyebrow / UPPERCASE labels (Syncopate Bold — architektonisch, editorial)
   eyebrow: {
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 11,
-    letterSpacing: 1.5,
+    fontFamily: fonts.eyebrowCaps,
+    fontSize: 10,
+    letterSpacing: 2.5,
     textTransform: "uppercase" as const,
   },
   eyebrowSmall: {
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 10,
-    letterSpacing: 2,
+    fontFamily: fonts.eyebrowCaps,
+    fontSize: 9,
+    letterSpacing: 2.8,
     textTransform: "uppercase" as const,
   },
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -10,10 +10,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
+  Animated,
+  Easing,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LinearGradient } from "expo-linear-gradient";
 import { signIn, signUp, resetPassword } from "../services/auth";
 import { colors, fonts, radii, typography } from "../constants/theme";
 import {
@@ -38,6 +41,54 @@ export default function AuthScreen() {
   const [err, setErr] = useState("");
 
   const isSignup = mode === "signup";
+
+  const runX = useRef(new Animated.Value(0)).current;
+  const bob = useRef(new Animated.Value(0)).current;
+  const screenW = Dimensions.get("window").width;
+
+  useEffect(() => {
+    if (view !== "picker") return;
+    runX.setValue(0);
+    const run = Animated.loop(
+      Animated.timing(runX, {
+        toValue: 1,
+        duration: 5200,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    const bobLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bob, {
+          toValue: 1,
+          duration: 180,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(bob, {
+          toValue: 0,
+          duration: 180,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    run.start();
+    bobLoop.start();
+    return () => {
+      run.stop();
+      bobLoop.stop();
+    };
+  }, [view, runX, bob]);
+
+  const dogX = runX.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-60, screenW + 20],
+  });
+  const dogBobY = bob.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -3],
+  });
 
   const openEmail = (m: Mode) => {
     setMode(m);
@@ -104,10 +155,26 @@ export default function AuthScreen() {
       <View style={styles.pickerRoot}>
         {/* TOP — Ink Masthead */}
         <View style={styles.topHalf}>
-          <Text style={styles.mastheadDark}>DAWG</Text>
+          {/* Dog walking left → right in the header strip */}
+          <View pointerEvents="none" style={styles.walkStrip}>
+            <Animated.Image
+              source={require("../assets/dawg-logo.png")}
+              resizeMode="contain"
+              style={[
+                styles.walkDog,
+                {
+                  transform: [
+                    { translateX: dogX },
+                    { translateY: dogBobY },
+                  ],
+                },
+              ]}
+            />
+          </View>
+
           <Text style={styles.heroTitle}>
-            Willkommen im{"\n"}
-            <Text style={styles.heroAccent}>Magazin.</Text>
+            Hier wird <Text style={styles.heroAccent}>gekocht.</Text>{"\n"}
+            Nicht <Text style={styles.heroAccent}>gescrollt.</Text>
           </Text>
           <Text style={styles.heroSub}>
             Dein Kochbuch, aus den Videos, die du liebst.
@@ -128,6 +195,8 @@ export default function AuthScreen() {
           <Pressable
             style={[styles.pbtn, styles.pbtnApple]}
             onPress={() => socialSoon("Apple")}
+            accessibilityRole="button"
+            accessibilityLabel="Mit Apple anmelden"
           >
             <View style={styles.pbtnIco}>
               <AppleLogo size={18} color="#fff" />
@@ -137,8 +206,10 @@ export default function AuthScreen() {
           </Pressable>
 
           <Pressable
-            style={[styles.pbtn, styles.pbtnGoogle]}
+            style={[styles.pbtn, styles.pbtnLight]}
             onPress={() => socialSoon("Google")}
+            accessibilityRole="button"
+            accessibilityLabel="Mit Google anmelden"
           >
             <View style={styles.pbtnIco}>
               <GoogleLogo size={18} />
@@ -150,43 +221,56 @@ export default function AuthScreen() {
           </Pressable>
 
           <Pressable
-            style={[styles.pbtn, styles.pbtnFacebook]}
+            style={[styles.pbtn, styles.pbtnLight]}
             onPress={() => socialSoon("Facebook")}
+            accessibilityRole="button"
+            accessibilityLabel="Mit Facebook anmelden"
           >
             <View style={styles.pbtnIco}>
-              <FacebookLogo size={18} color="#fff" />
+              <FacebookLogo size={18} color="#1877F2" />
             </View>
-            <Text style={styles.pbtnLabel}>Weiter mit Facebook</Text>
+            <Text style={[styles.pbtnLabel, styles.pbtnLabelDark]}>
+              Weiter mit Facebook
+            </Text>
             <View style={styles.pbtnSpacer} />
-          </Pressable>
-
-          <Pressable onPress={() => socialSoon("Instagram")}>
-            <LinearGradient
-              colors={["#F58529", "#DD2A7B", "#8134AF", "#515BD4"]}
-              start={{ x: 0, y: 1 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.pbtn}
-            >
-              <View style={styles.pbtnIco}>
-                <InstagramLogo size={18} />
-              </View>
-              <Text style={styles.pbtnLabel}>Weiter mit Instagram</Text>
-              <View style={styles.pbtnSpacer} />
-            </LinearGradient>
           </Pressable>
 
           <Pressable
-            style={[styles.pbtn, styles.pbtnEmail]}
-            onPress={() => openEmail("signup")}
+            style={[styles.pbtn, styles.pbtnLight]}
+            onPress={() => socialSoon("Instagram")}
+            accessibilityRole="button"
+            accessibilityLabel="Mit Instagram anmelden"
           >
             <View style={styles.pbtnIco}>
-              <EmailLogo size={18} color={colors.bg} />
+              <InstagramLogo size={18} />
             </View>
-            <Text style={styles.pbtnLabel}>Weiter mit Email</Text>
+            <Text style={[styles.pbtnLabel, styles.pbtnLabelDark]}>
+              Weiter mit Instagram
+            </Text>
             <View style={styles.pbtnSpacer} />
           </Pressable>
 
-          <Pressable onPress={() => openEmail("login")} style={styles.switchRow}>
+          <Pressable
+            style={[styles.pbtn, styles.pbtnLight]}
+            onPress={() => openEmail("signup")}
+            accessibilityRole="button"
+            accessibilityLabel="Mit Email registrieren"
+          >
+            <View style={styles.pbtnIco}>
+              <EmailLogo size={18} color={colors.ink} />
+            </View>
+            <Text style={[styles.pbtnLabel, styles.pbtnLabelDark]}>
+              Weiter mit Email
+            </Text>
+            <View style={styles.pbtnSpacer} />
+          </Pressable>
+
+          <Pressable
+            onPress={() => openEmail("login")}
+            style={styles.switchRow}
+            accessibilityRole="button"
+            accessibilityLabel="Zur Anmeldung für bestehende Konten"
+          >
             <Text style={styles.switchText}>
               Schon dabei? <Text style={styles.switchLink}>Anmelden</Text>
             </Text>
@@ -212,7 +296,13 @@ export default function AuthScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Pressable onPress={() => setView("picker")} style={styles.backRow}>
+        <Pressable
+          onPress={() => setView("picker")}
+          style={styles.backRow}
+          accessibilityRole="button"
+          accessibilityLabel="Zurück zur Anmelde-Auswahl"
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <Text style={styles.backArrow}>←</Text>
           <Text style={styles.backLabel}>Zurück</Text>
         </Pressable>
@@ -268,7 +358,9 @@ export default function AuthScreen() {
 
         {isSignup && (
           <>
-            <Text style={styles.label}>Name</Text>
+            <Text style={styles.label} accessibilityRole="text">
+              Name
+            </Text>
             <TextInput
               style={styles.input}
               value={displayName}
@@ -277,34 +369,49 @@ export default function AuthScreen() {
               placeholderTextColor={colors.sageFaint}
               autoCapitalize="words"
               autoCorrect={false}
+              accessibilityLabel="Dein Name"
             />
           </>
         )}
 
-        <Text style={styles.label}>E-Mail</Text>
+        <Text style={styles.label} accessibilityRole="text">
+          E-Mail
+        </Text>
         <TextInput
           style={styles.input}
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(t) => {
+            setEmail(t);
+            if (err) setErr("");
+          }}
           placeholder="du@beispiel.de"
           placeholderTextColor={colors.sageFaint}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"
-          textContentType="emailAddress"
+          autoComplete="off"
+          textContentType="none"
+          accessibilityLabel="E-Mail-Adresse"
         />
 
-        <Text style={styles.label}>Passwort</Text>
+        <Text style={styles.label} accessibilityRole="text">
+          Passwort
+        </Text>
         <TextInput
           style={styles.input}
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(t) => {
+            setPassword(t);
+            if (err) setErr("");
+          }}
           placeholder={isSignup ? "min. 8 Zeichen" : "Passwort"}
           placeholderTextColor={colors.sageFaint}
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}
-          textContentType={isSignup ? "newPassword" : "password"}
+          autoComplete="off"
+          textContentType="none"
+          accessibilityLabel="Passwort"
         />
 
         {!!err && <Text style={styles.err}>{err}</Text>}
@@ -313,6 +420,9 @@ export default function AuthScreen() {
           style={[styles.submit, busy && styles.submitDisabled]}
           onPress={submit}
           disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel={isSignup ? "Konto erstellen" : "Anmelden"}
+          accessibilityState={{ disabled: busy, busy }}
         >
           {busy ? (
             <ActivityIndicator color="#fff" />
@@ -324,7 +434,12 @@ export default function AuthScreen() {
         </Pressable>
 
         {!isSignup && (
-          <Pressable onPress={handleReset}>
+          <Pressable
+            onPress={handleReset}
+            accessibilityRole="button"
+            accessibilityLabel="Passwort zurücksetzen"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <Text style={styles.forgot}>Passwort vergessen?</Text>
           </Pressable>
         )}
@@ -346,17 +461,27 @@ const styles = StyleSheet.create({
 
   topHalf: {
     backgroundColor: colors.ink,
-    paddingTop: 88,
-    paddingBottom: 36,
+    paddingTop: 116,
+    paddingBottom: 40,
     paddingHorizontal: 28,
-    justifyContent: "center",
+    overflow: "hidden",
+    position: "relative",
   },
-  mastheadDark: {
-    fontFamily: fonts.displayBlack,
-    fontSize: 16,
-    letterSpacing: 5,
-    color: colors.bg,
-    marginBottom: 22,
+  walkStrip: {
+    position: "absolute",
+    top: 66,
+    left: 0,
+    right: 0,
+    height: 34,
+    zIndex: 1,
+  },
+  walkDog: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: 44,
+    height: 34,
+    tintColor: colors.accentLuminous,
   },
   heroTitle: {
     fontFamily: fonts.displayBlack,
@@ -388,7 +513,7 @@ const styles = StyleSheet.create({
   },
 
   sectionLabel: {
-    fontFamily: fonts.bodyExtraBold,
+    fontFamily: fonts.eyebrowCaps,
     fontSize: 10,
     letterSpacing: 2.4,
     textTransform: "uppercase" as const,
@@ -405,13 +530,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   pbtnApple: { backgroundColor: "#0b0c08" },
-  pbtnGoogle: {
+  pbtnLight: {
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: colors.cardBorderInk,
   },
-  pbtnFacebook: { backgroundColor: "#1877F2" },
-  pbtnEmail: { backgroundColor: colors.ink },
   pbtnIco: {
     width: 22,
     height: 22,
@@ -472,7 +595,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   backLabel: {
-    fontFamily: fonts.bodyExtraBold,
+    fontFamily: fonts.eyebrowCaps,
     fontSize: 10,
     letterSpacing: 2,
     textTransform: "uppercase",
@@ -486,7 +609,7 @@ const styles = StyleSheet.create({
     color: colors.sageDim,
     textTransform: "uppercase",
     marginBottom: 14,
-    fontFamily: fonts.bodyExtraBold,
+    fontFamily: fonts.eyebrowCaps,
   },
   emailTitle: {
     fontFamily: fonts.displayBlack,
@@ -530,7 +653,7 @@ const styles = StyleSheet.create({
   toggleTextActive: { color: "#fff" },
 
   label: {
-    fontFamily: fonts.bodyExtraBold,
+    fontFamily: fonts.eyebrowCaps,
     fontSize: 10,
     letterSpacing: 1.8,
     color: colors.sageDim,

@@ -482,9 +482,12 @@ export default function HomeScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="url"
+                accessibilityLabel="Video-URL einfügen"
               />
               <Pressable
-                role="button"
+                accessibilityRole="button"
+                accessibilityLabel="Rezept aus Video erstellen"
+                accessibilityState={{ disabled: loading, busy: loading }}
                 style={[styles.button, loading && styles.buttonDisabled]}
                 onPress={handleGenerate}
               >
@@ -545,6 +548,9 @@ export default function HomeScreen() {
                   <Pressable
                     style={styles.servingsButton}
                     onPress={() => currentServings > 1 && setCurrentServings(currentServings - 1)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Portion verringern"
+                    hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
                   >
                     <Text style={styles.servingsButtonText}>-</Text>
                   </Pressable>
@@ -552,6 +558,9 @@ export default function HomeScreen() {
                   <Pressable
                     style={styles.servingsButton}
                     onPress={() => setCurrentServings(currentServings + 1)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Portion erhöhen"
+                    hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
                   >
                     <Text style={styles.servingsButtonText}>+</Text>
                   </Pressable>
@@ -948,7 +957,7 @@ export default function HomeScreen() {
 
 const G = "rgba(42, 56, 37, 0.55)"; // glass dark (same as tab bar)
 const W = (a: number) => `rgba(255,255,255,${a})`;
-const M = (a: number) => `rgba(123,170,110,${a})`;
+const M = (a: number) => `rgba(42,56,37,${a})`;
 
 const styles = StyleSheet.create({
   // === BASE ===
@@ -1166,7 +1175,7 @@ const styles = StyleSheet.create({
     overflow: "hidden" as any,
   } as any,
   gemueseHeader: { marginBottom: 12 },
-  gemueseLabel: { fontFamily: "Manrope_800ExtraBold", fontSize: 11, color: "#8A9E82", letterSpacing: 1.8, textTransform: "uppercase" as any, textAlign: "center" as any },
+  gemueseLabel: { fontFamily: "Syncopate_700Bold", fontSize: 10, color: "#8A9E82", letterSpacing: 2.5, textTransform: "uppercase" as any, textAlign: "center" as any },
   gemueseImage: { width: "100%" as any, height: 160, borderRadius: 14, marginBottom: 12 },
   gemuese_name: { fontFamily: "FrankRuhlLibre_900Black", fontSize: 26, color: "#2A3825", letterSpacing: -0.5, lineHeight: 30, marginBottom: 6 },
   gemueseText: { fontFamily: "Manrope_500Medium", fontSize: 13, color: "#6E8868", lineHeight: 19, marginBottom: 14 },

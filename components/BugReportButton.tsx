@@ -57,7 +57,8 @@ export default function BugReportButton() {
       <Pressable
         style={styles.fab}
         onPress={() => setOpen(true)}
-        hitSlop={10}
+        hitSlop={14}
+        accessibilityRole="button"
         accessibilityLabel="Bug melden oder Feedback geben"
       >
         <Text style={styles.fabText}>?</Text>

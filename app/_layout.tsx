@@ -18,6 +18,11 @@ import {
   Manrope_700Bold,
   Manrope_800ExtraBold,
 } from "@expo-google-fonts/manrope";
+import {
+  Unbounded_700Bold,
+  Unbounded_800ExtraBold,
+} from "@expo-google-fonts/unbounded";
+import { Syncopate_700Bold } from "@expo-google-fonts/syncopate";
 
 export default function RootLayout() {
   const router = useRouter();
@@ -33,6 +38,9 @@ export default function RootLayout() {
     Manrope_600SemiBold,
     Manrope_700Bold,
     Manrope_800ExtraBold,
+    Unbounded_700Bold,
+    Unbounded_800ExtraBold,
+    Syncopate_700Bold,
   });
 
   useEffect(() => {
@@ -89,13 +97,18 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: "rgba(123, 170, 110, 0.85)",
+            backgroundColor: "#2A3825",
             borderBottomWidth: 0,
             shadowOpacity: 0,
             elevation: 0,
           } as any,
-          headerTintColor: "#fff",
-          headerTitleStyle: { fontWeight: "bold" },
+          headerTintColor: "#EEF2EA",
+          headerTitleStyle: {
+            fontFamily: "Unbounded_800ExtraBold",
+            fontSize: 15,
+            letterSpacing: -0.3,
+            color: "#EEF2EA",
+          },
         }}
       >
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />

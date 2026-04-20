@@ -18,19 +18,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { getRecipes, deleteRecipe, getCookbooks, addCookbook, deleteCookbook, updateRecipe, getCookbookMeta, saveCookbookMeta, renameCookbookMeta, CookbookMeta } from "../../services/storage";
 import { Recipe } from "../../types/recipe";
 import { AccentText } from "../../components/AccentText";
+import { palettes } from "../../constants/theme";
 
-const CARD_COLORS = [
-  ["#6B8B68", "#1E2E1A"],  // Waldgrün
-  ["#8AAA7A", "#2A3E22"],  // Salbei
-  ["#A0B488", "#3A5230"],  // Olive
-  ["#7A9A8A", "#1E3428"],  // Eukalyptus
-  ["#8EAE7E", "#2A4220"],  // Matcha
-  ["#80A090", "#243828"],  // Moos
-  ["#9EAE8E", "#343E28"],  // Thymian
-  ["#7AAA8E", "#1A3424"],  // Jade
-  ["#96A87A", "#2A3618"],  // Pistazie
-  ["#84967A", "#1E2C16"],  // Basilikum
-];
+const CARD_COLORS = palettes.cookbookCards;
 
 const CARD_SUBTITLES: Record<string, string> = {
   "Meine Rezepte": "Alle Lieblingsrezepte",
@@ -49,22 +39,7 @@ const CARD_SUBTITLES: Record<string, string> = {
   "Test": "Zum Ausprobieren",
 };
 
-const PICKER_COLORS = [
-  ["#6B8B68", "#1E2E1A"],  // Waldgrün
-  ["#8AAA7A", "#2A3E22"],  // Salbei
-  ["#A09078", "#3A2818"],  // Terrakotta
-  ["#9A8A72", "#2E2418"],  // Mokka
-  ["#8890A0", "#282E3A"],  // Schieferblau
-  ["#A08A8A", "#382828"],  // Rosewood
-  ["#90987A", "#2A2E1A"],  // Olive
-  ["#7A8A98", "#1E2830"],  // Ozean
-  ["#A09A80", "#303018"],  // Sand
-  ["#9A8898", "#2E2430"],  // Lavendel
-  ["#88A090", "#1E3028"],  // Jade
-  ["#B09070", "#3A2010"],  // Karamell
-  ["#7898A8", "#1A2A38"],  // Nordlicht
-  ["#A8887A", "#302018"],  // Zimt
-];
+const PICKER_COLORS = palettes.cookbookPickers;
 
 const COVER_ICONS = [
   require("../../assets/covers/dawg.png"),
@@ -649,7 +624,12 @@ export default function SavedScreen() {
         </ScrollView>
 
         <View style={styles.addSection}>
-          <Pressable style={styles.addButton} onPress={openModal}>
+          <Pressable
+            style={styles.addButton}
+            onPress={openModal}
+            accessibilityRole="button"
+            accessibilityLabel="Neues Kochbuch erstellen"
+          >
             <Text style={styles.addPlus}>+</Text>
             <Text style={styles.addText}>Neue Kategorie erstellen</Text>
           </Pressable>
@@ -789,10 +769,18 @@ export default function SavedScreen() {
               <Pressable
                 style={[styles.modalCreateBtn, !newCookbookName.trim() && { opacity: 0.4 }]}
                 onPress={editingCookbook ? handleSaveEdit : handleCreateCookbook}
+                accessibilityRole="button"
+                accessibilityLabel={editingCookbook ? "Änderungen am Kochbuch speichern" : "Neues Kochbuch erstellen"}
+                accessibilityState={{ disabled: !newCookbookName.trim() }}
               >
                 <Text style={styles.modalCreateBtnText}>{editingCookbook ? "Änderungen speichern" : "Kochbuch erstellen"}</Text>
               </Pressable>
-              <Pressable style={styles.modalCancelBtn} onPress={() => setShowModal(false)}>
+              <Pressable
+                style={styles.modalCancelBtn}
+                onPress={() => setShowModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Abbrechen und Modal schließen"
+              >
                 <Text style={styles.modalCancelBtnText}>Abbrechen</Text>
               </Pressable>
             </ScrollView>

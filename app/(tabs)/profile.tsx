@@ -78,7 +78,12 @@ export default function ProfileScreen() {
           <Text style={styles.tipText}>
             Gib deinem Cover den letzten Schliff — lass deiner Kreativität freien Lauf.
           </Text>
-          <Pressable onPress={dismissTip} hitSlop={8}>
+          <Pressable
+            onPress={dismissTip}
+            hitSlop={14}
+            accessibilityRole="button"
+            accessibilityLabel="Hinweis ausblenden"
+          >
             <Text style={styles.tipClose}>✕</Text>
           </Pressable>
         </View>
@@ -102,25 +107,42 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.settings}>
-        <Pressable style={styles.settingsItem} onPress={() => setShowEditor(true)}>
+        <Pressable
+          style={styles.settingsItem}
+          onPress={() => setShowEditor(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Profil bearbeiten"
+        >
           <Text style={styles.settingsNum}>01</Text>
           <Text style={styles.settingsText}>Profil bearbeiten</Text>
           <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
         <View style={styles.settingsDivider} />
-        <Pressable style={styles.settingsItem}>
+        <Pressable
+          style={styles.settingsItem}
+          accessibilityRole="button"
+          accessibilityLabel="Ernährungspräferenzen einstellen"
+        >
           <Text style={styles.settingsNum}>02</Text>
           <Text style={styles.settingsText}>Ernährungspräferenzen</Text>
           <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
         <View style={styles.settingsDivider} />
-        <Pressable style={styles.settingsItem}>
+        <Pressable
+          style={styles.settingsItem}
+          accessibilityRole="button"
+          accessibilityLabel="Social-Media-Konten verknüpfen"
+        >
           <Text style={styles.settingsNum}>03</Text>
           <Text style={styles.settingsText}>Socials verknüpfen</Text>
           <Text style={styles.settingsChevron}>›</Text>
         </Pressable>
         <View style={styles.settingsDivider} />
-        <Pressable style={styles.settingsItem}>
+        <Pressable
+          style={styles.settingsItem}
+          accessibilityRole="button"
+          accessibilityLabel="Autor-Karte teilen"
+        >
           <Text style={styles.settingsNum}>04</Text>
           <Text style={styles.settingsText}>Karte teilen</Text>
           <Text style={styles.settingsChevron}>›</Text>

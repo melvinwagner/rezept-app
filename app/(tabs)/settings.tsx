@@ -251,13 +251,23 @@ export default function SettingsScreen() {
         />
 
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleSave}
+            accessibilityRole="button"
+            accessibilityLabel="API-Key speichern"
+          >
             <Text style={styles.saveButtonText}>
               {saved ? "✓ Gespeichert" : "Speichern"}
             </Text>
           </TouchableOpacity>
           {saved && (
-            <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+            <TouchableOpacity
+              style={styles.clearButton}
+              onPress={handleClear}
+              accessibilityRole="button"
+              accessibilityLabel="API-Key entfernen"
+            >
               <Text style={styles.clearButtonText}>Entfernen</Text>
             </TouchableOpacity>
           )}
@@ -274,14 +284,29 @@ export default function SettingsScreen() {
 
         <View>
           <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.exportButton} onPress={handleExport}>
+            <TouchableOpacity
+              style={styles.exportButton}
+              onPress={handleExport}
+              accessibilityRole="button"
+              accessibilityLabel="Daten als Datei exportieren"
+            >
               <Text style={styles.exportButtonText}>Exportieren</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.importButton} onPress={handleImport}>
+            <TouchableOpacity
+              style={styles.importButton}
+              onPress={handleImport}
+              accessibilityRole="button"
+              accessibilityLabel="Daten aus Datei importieren"
+            >
               <Text style={styles.importButtonText}>Importieren</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+          <TouchableOpacity
+            style={styles.shareButton}
+            onPress={handleShare}
+            accessibilityRole="button"
+            accessibilityLabel="Daten per Link teilen"
+          >
             <Text style={styles.shareButtonText}>Teilen</Text>
           </TouchableOpacity>
         </View>
@@ -313,6 +338,8 @@ export default function SettingsScreen() {
             await AsyncStorage.removeItem("onboarding_completed");
             router.replace("/onboarding");
           }}
+          accessibilityRole="button"
+          accessibilityLabel="Onboarding neu starten"
         >
           <Text style={styles.saveButtonText}>Onboarding öffnen</Text>
         </TouchableOpacity>
@@ -331,6 +358,8 @@ export default function SettingsScreen() {
               router.replace("/auth");
             } catch {}
           }}
+          accessibilityRole="button"
+          accessibilityLabel="Abmelden und zur Anmelde-Seite"
         >
           <Text style={styles.saveButtonText}>Logout</Text>
         </TouchableOpacity>
@@ -368,31 +397,31 @@ const styles = StyleSheet.create({
     padding: 14,
     fontSize: 15,
     borderWidth: 0.5,
-    borderColor: "rgba(123, 170, 110, 0.15)",
+    borderColor: "rgba(42, 56, 37, 0.12)",
     marginBottom: 12,
   },
   buttonRow: { flexDirection: "row", gap: 10 },
   saveButton: {
-    backgroundColor: "rgba(123, 170, 110, 0.88)",
+    backgroundColor: "#2A3825",
     borderRadius: 14,
     padding: 14,
     flex: 1,
     alignItems: "center",
-    boxShadow: "0 2px 10px rgba(123, 170, 110, 0.2)",
+    boxShadow: "0 2px 10px rgba(42, 56, 37, 0.2)",
   } as any,
   saveButtonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
   clearButton: {
-    backgroundColor: "rgba(123, 170, 110, 0.1)",
+    backgroundColor: "rgba(42, 56, 37, 0.08)",
     borderRadius: 14,
     padding: 14,
     paddingHorizontal: 20,
     alignItems: "center",
     borderWidth: 0.5,
-    borderColor: "rgba(123, 170, 110, 0.15)",
+    borderColor: "rgba(42, 56, 37, 0.12)",
   },
   clearButtonText: { color: "#98AE92", fontWeight: "600", fontSize: 15 },
   exportButton: {
-    backgroundColor: "rgba(92, 154, 80, 0.88)",
+    backgroundColor: "#3F7A36",
     borderRadius: 14,
     padding: 14,
     flex: 1,
@@ -401,7 +430,7 @@ const styles = StyleSheet.create({
   } as any,
   exportButtonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
   importButton: {
-    backgroundColor: "rgba(107, 158, 136, 0.88)",
+    backgroundColor: "rgba(42, 56, 37, 0.85)",
     borderRadius: 14,
     padding: 14,
     flex: 1,
@@ -410,12 +439,12 @@ const styles = StyleSheet.create({
   } as any,
   importButtonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
   shareButton: {
-    backgroundColor: "rgba(123, 170, 110, 0.88)",
+    backgroundColor: "#2A3825",
     borderRadius: 14,
     padding: 14,
     alignItems: "center",
     marginTop: 10,
-    boxShadow: "0 2px 10px rgba(123, 170, 110, 0.2)",
+    boxShadow: "0 2px 10px rgba(42, 56, 37, 0.2)",
   } as any,
   shareButtonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
   syncStatus: {
