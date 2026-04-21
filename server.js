@@ -430,24 +430,46 @@ async function calculateNutrition(ingredients, servings) {
   };
 }
 
-async function searchFoodImage(recipeName) {
+async function searchFoodImage({ imageQuery, title, description }) {
   if (!PEXELS_API_KEY) return null;
-  try {
-    const query = recipeName.replace(/[^\w\s]/g, "").trim();
-    const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query + " food")}&per_page=1&orientation=portrait`;
-    const response = await fetch(url, {
-      headers: { Authorization: PEXELS_API_KEY },
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    if (data.photos && data.photos.length > 0) {
-      return data.photos[0].src.medium; // 350x560 ca.
-    }
-    return null;
-  } catch (err) {
-    console.error("Pexels search failed:", err.message);
-    return null;
+
+  // Claude-generierte image_query bevorzugen. Fallback: title + keywords aus description.
+  const queries = [];
+  if (imageQuery && imageQuery.trim()) {
+    queries.push(imageQuery.trim());
   }
+  if (title) {
+    const cleanTitle = title.replace(/[^\w\s]/g, "").trim();
+    queries.push(`${cleanTitle} dish`);
+  }
+  if (description) {
+    const descKeywords = description
+      .replace(/[^\w\s]/g, "")
+      .split(/\s+/)
+      .filter((w) => w.length > 3)
+      .slice(0, 4)
+      .join(" ");
+    if (descKeywords) queries.push(descKeywords);
+  }
+
+  for (const q of queries) {
+    try {
+      const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(q)}&per_page=3&orientation=portrait`;
+      const response = await fetch(url, {
+        headers: { Authorization: PEXELS_API_KEY },
+      });
+      if (!response.ok) continue;
+      const data = await response.json();
+      if (data.photos && data.photos.length > 0) {
+        console.log(`  Pexels-Hit für "${q}" (${data.photos.length} results)`);
+        return data.photos[0].src.medium;
+      }
+      console.log(`  Pexels-Miss für "${q}"`);
+    } catch (err) {
+      console.error(`  Pexels search failed for "${q}":`, err.message);
+    }
+  }
+  return null;
 }
 
 function getVideoCaption(videoUrl) {
@@ -726,6 +748,7 @@ Antworte AUSSCHLIESSLICH mit validem JSON im folgenden Format, ohne Markdown-Cod
 {
   "title": "Rezeptname",
   "description": "Kurze Beschreibung des Gerichts",
+  "image_query": "food photography search phrase in english",
   "servings": 2,
   "prepTime": "z.B. 5 Min",
   "cookTime": "z.B. 8 Min",
@@ -734,6 +757,19 @@ Antworte AUSSCHLIESSLICH mit validem JSON im folgenden Format, ohne Markdown-Cod
   "allergens": ["Gluten", "Milch"],
   "tags": ["vegetarisch"]
 }
+
+IMAGE_QUERY - PFLICHTFELD:
+- "image_query" ist ein kurzer englischer Suchbegriff (3–7 Wörter) für die Pexels-Bildsuche.
+- Beschreibe das fertige Gericht VISUELL mit spezifischen Keywords: Hauptzutat, Zubereitungsart, Präsentation.
+- Nutze englische Standardbezeichnungen für die Küche (z.B. "italian pasta", "thai soup", "beef tacos").
+- Beispiele:
+  * Rezept "Loaded Fries mit Cheddar" → "loaded fries cheese bacon plate"
+  * Rezept "Cacio e Pepe" → "italian cacio e pepe pasta bowl"
+  * Rezept "Tom Yum Gung" → "thai tom yum soup shrimp bowl"
+  * Rezept "Shakshuka mit Feta" → "shakshuka eggs tomato skillet feta"
+  * Rezept "Avocado Toast" → "avocado toast sourdough bread"
+- KEINE generischen Wörter wie "recipe", "cooking", "food" (Pexels braucht spezifische Keywords).
+- KEINE Satzzeichen, kein "with", keine Artikel.
 
 HINWEIS zu Zutaten:
 - Jede Zutat MUSS ein "search"-Feld enthalten: ein kurzer englischer Suchbegriff für die USDA-Nährwertdatenbank.
@@ -805,9 +841,14 @@ HINWEIS zu Tags:
       recipe.totalRecipe = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, weight_g: 0 };
     }
 
-    // Step 5: Food-Bild über Pexels anhand des Rezeptnamens generieren
+    // Step 5: Food-Bild über Pexels anhand von image_query + title + description
     console.log("Step 5: Generating food image via Pexels...");
-    const generatedImage = await searchFoodImage(recipe.title);
+    console.log(`  image_query: "${recipe.image_query || "(none)"}"`);
+    const generatedImage = await searchFoodImage({
+      imageQuery: recipe.image_query,
+      title: recipe.title,
+      description: recipe.description,
+    });
     recipe.imageUrl = generatedImage || null;
     recipe.thumbnail = generatedImage || null;
     if (generatedImage) {
