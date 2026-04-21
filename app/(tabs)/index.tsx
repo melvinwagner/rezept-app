@@ -475,7 +475,7 @@ export default function HomeScreen() {
                 minimumFontScale={0.6}
               >
                 Jedes <Text style={styles.taglineAccent}>Video</Text>
-                {" "}wird zum <Text style={styles.taglineAccent}>Rezept</Text>.
+                {"\n"}wird zum <Text style={styles.taglineAccent}>Rezept</Text>.
               </Text>
             </View>
 
