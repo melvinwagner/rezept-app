@@ -363,15 +363,29 @@ async function calculateNutrition(ingredients, servings) {
     weight_g: Math.round(totalWeightG),
   };
 
-  // EU-Durchschnitt: Hauptmahlzeit ≈ 650 kcal/Person.
-  // Wenn Claude's servings-Wert plausibel → nutzen. Sonst: Fallback auf EU-Standard.
-  const EU_STANDARD_KCAL_PER_PORTION = 650;
+  // EU-Standard Hauptmahlzeit: ≈ 750 kcal UND ≈ 400g/Person.
+  // Dualer Check (kcal + Gewicht) verhindert Über-Teilung bei fett-/kalorienreichen
+  // Rezepten (z.B. Loaded Fries: hohe kcal, aber geteiltes Party-Gericht).
+  // Zusätzlich harte Obergrenze von 6 Portionen für typische Haushalts-Rezepte.
+  const EU_MAIN_MEAL_KCAL = 750;
+  const EU_MAIN_MEAL_WEIGHT_G = 400;
+  const MAX_REASONABLE_SERVINGS = 6;
+
   const claudeKcalPerPortion = servings > 0 ? totals.kcal / servings : 0;
   const claudeSeemsReasonable =
-    servings > 0 && claudeKcalPerPortion >= 200 && claudeKcalPerPortion <= 1200;
-  const effectiveServings = claudeSeemsReasonable
-    ? servings
-    : Math.max(1, Math.round(totals.kcal / EU_STANDARD_KCAL_PER_PORTION));
+    servings > 0 && claudeKcalPerPortion >= 250 && claudeKcalPerPortion <= 1300;
+
+  let effectiveServings;
+  if (claudeSeemsReasonable) {
+    effectiveServings = servings;
+  } else {
+    const byKcal = Math.max(1, Math.round(totals.kcal / EU_MAIN_MEAL_KCAL));
+    const byWeight = totalWeightG > 0
+      ? Math.max(1, Math.round(totalWeightG / EU_MAIN_MEAL_WEIGHT_G))
+      : byKcal;
+    // Kleinere Zahl ≙ weniger teilen ≙ größere Portionen (konservativer).
+    effectiveServings = Math.min(byKcal, byWeight, MAX_REASONABLE_SERVINGS);
+  }
 
   // Pro Portion (für Backward-Compat — Client berechnet live aus totalRecipe)
   const perServing = {
