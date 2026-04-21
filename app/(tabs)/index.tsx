@@ -467,9 +467,9 @@ export default function HomeScreen() {
         {!recipe && (
           <>
             <View style={styles.header}>
-              <Text style={styles.tagline}>
+              <Text style={styles.tagline} numberOfLines={2} ellipsizeMode="tail">
                 Jedes <Text style={styles.taglineAccent}>Video</Text>
-                {"\n"}wird zum <Text style={styles.taglineAccent}>Rezept</Text>.
+                {" "}wird zum <Text style={styles.taglineAccent}>Rezept</Text>.
               </Text>
             </View>
 
