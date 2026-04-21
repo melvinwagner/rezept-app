@@ -687,7 +687,7 @@ export default function SavedScreen() {
                   </View>
                   <View style={styles.previewContent}>
                     <Text style={styles.previewCat}>Kategorie</Text>
-                    <Text style={styles.previewName} numberOfLines={2}>{newCookbookName || "Dein Kochbuch"}</Text>
+                    <Text style={styles.previewName} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.65}>{newCookbookName || "Dein Kochbuch"}</Text>
                     <Text style={styles.previewCount}>0 Rezepte</Text>
                     <View style={styles.previewLine} />
                   </View>

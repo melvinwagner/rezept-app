@@ -26,6 +26,7 @@ export function AccentText({
   style,
   accentStyle,
   numberOfLines = 2,
+  minimumFontScale = 0.55,
 }: {
   children: string;
   words?: number;
@@ -33,6 +34,7 @@ export function AccentText({
   style?: StyleProp<TextStyle>;
   accentStyle?: StyleProp<TextStyle>;
   numberOfLines?: number;
+  minimumFontScale?: number;
 }) {
   const accentColor = onDark ? colors.accentLuminous : colors.accentInk;
 
@@ -41,7 +43,12 @@ export function AccentText({
   const tail = parts.slice(-words).join(" ");
 
   return (
-    <Text style={style} numberOfLines={numberOfLines} ellipsizeMode="tail">
+    <Text
+      style={style}
+      numberOfLines={numberOfLines}
+      adjustsFontSizeToFit
+      minimumFontScale={minimumFontScale}
+    >
       {head}
       {head ? " " : ""}
       <Text style={[{ color: accentColor }, accentStyle]}>{tail}</Text>
