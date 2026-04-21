@@ -125,8 +125,9 @@ export default function RecipeDetailScreen() {
     }
   };
 
-  // Zutatenmengen bleiben absolut — der Slider teilt das fixe Rezept auf N Portionen.
-  const scale = 1;
+  // Slider skaliert das gesamte Rezept: Zutatenmengen und per-Zutat-kcal × scale.
+  // kcal/Portion bleibt konstant (Eigenschaft der Rezeptkomposition, nicht der Portionsanzahl).
+  const scale = originalServings > 0 ? currentServings / originalServings : 1;
 
   // Gesamt-kcal des Rezepts (Single Source of Truth).
   // Priorität: neues totalRecipe-Feld → sonst Summe ingredientNutrition → sonst perPortion × original.
@@ -286,8 +287,8 @@ export default function RecipeDetailScreen() {
         <View style={styles.metaItem}>
           <Text style={styles.metaLabel}>kcal / Portion</Text>
           <Text style={styles.metaValue}>
-            {totalRecipeKcal > 0 && currentServings > 0
-              ? Math.round(totalRecipeKcal / currentServings)
+            {totalRecipeKcal > 0 && originalServings > 0
+              ? Math.round(totalRecipeKcal / originalServings)
               : "-"}
           </Text>
         </View>
@@ -396,26 +397,19 @@ export default function RecipeDetailScreen() {
             const nutrition = recipe.ingredientNutrition?.find(
               (n) => n.name === ing.name
             );
-            // kcal-Beitrag pro Portion = gesamt-kcal der Zutat / aktuelle Portionen
-            const perPortionKcal =
-              nutrition && nutrition.kcal != null && currentServings > 0
-                ? Math.round(nutrition.kcal / currentServings)
+            // kcal-Beitrag für aktuelle Portions-Skalierung
+            const ingKcal =
+              nutrition && nutrition.kcal != null
+                ? Math.round(nutrition.kcal * scale)
                 : null;
             return (
               <View key={i} style={styles.ingredientRow}>
                 <View style={styles.bullet} />
                 <View style={styles.ingredientTextWrap}>
                   <Text style={styles.ingredientText}>{formatIngredient(ing, scale)}</Text>
-                  {perPortionKcal != null ? (
-                    <Text style={styles.ingredientKcal}>
-                      {perPortionKcal} kcal / Portion
-                      {nutrition?.source ? ` · ${nutrition.source}` : ""}
-                    </Text>
-                  ) : nutrition && nutrition.kcal == null ? (
-                    <Text style={styles.ingredientKcal}>
-                      keine Nährwert-Daten
-                    </Text>
-                  ) : null}
+                  {ingKcal != null && (
+                    <Text style={styles.ingredientKcal}>{ingKcal} kcal</Text>
+                  )}
                 </View>
               </View>
             );
@@ -424,8 +418,8 @@ export default function RecipeDetailScreen() {
             <View style={styles.ingredientTotalRow}>
               <Text style={styles.ingredientTotalLabel}>Gesamt · ÷ Portionen</Text>
               <Text style={styles.ingredientTotalValue}>
-                {Math.round(totalRecipeKcal)} kcal ÷ {currentServings} ={" "}
-                {currentServings > 0 ? Math.round(totalRecipeKcal / currentServings) : "-"} kcal/P
+                {Math.round(totalRecipeKcal * scale)} kcal ÷ {currentServings} ={" "}
+                {originalServings > 0 ? Math.round(totalRecipeKcal / originalServings) : "-"} kcal/P
               </Text>
             </View>
           )}
@@ -480,21 +474,18 @@ export default function RecipeDetailScreen() {
         <View style={styles.nutritionSection}>
           <Text style={styles.sectionTitle}>Nährwerte</Text>
 
-          <Text style={styles.nutritionSubtitle}>
-            Pro Portion · {currentServings}{" "}
-            {currentServings === 1 ? "Portion" : "Portionen"}
-          </Text>
+          <Text style={styles.nutritionSubtitle}>Pro Portion</Text>
           <View style={styles.nutritionGrid}>
             <View style={styles.nutritionItem}>
               <Text style={styles.nutritionValue}>
-                {currentServings > 0 ? Math.round(totalRecipeKcal / currentServings) : "-"}
+                {originalServings > 0 ? Math.round(totalRecipeKcal / originalServings) : "-"}
               </Text>
               <Text style={styles.nutritionLabel}>kcal</Text>
             </View>
             <View style={styles.nutritionItem}>
               <Text style={styles.nutritionValue}>
-                {recipe.totalRecipe && currentServings > 0
-                  ? Math.round(recipe.totalRecipe.protein / currentServings)
+                {recipe.totalRecipe && originalServings > 0
+                  ? Math.round(recipe.totalRecipe.protein / originalServings)
                   : recipe.nutritionPerServing?.protein ?? 0}
                 g
               </Text>
@@ -502,8 +493,8 @@ export default function RecipeDetailScreen() {
             </View>
             <View style={styles.nutritionItem}>
               <Text style={styles.nutritionValue}>
-                {recipe.totalRecipe && currentServings > 0
-                  ? Math.round(recipe.totalRecipe.carbs / currentServings)
+                {recipe.totalRecipe && originalServings > 0
+                  ? Math.round(recipe.totalRecipe.carbs / originalServings)
                   : recipe.nutritionPerServing?.carbs ?? 0}
                 g
               </Text>
@@ -511,8 +502,8 @@ export default function RecipeDetailScreen() {
             </View>
             <View style={styles.nutritionItem}>
               <Text style={styles.nutritionValue}>
-                {recipe.totalRecipe && currentServings > 0
-                  ? Math.round(recipe.totalRecipe.fat / currentServings)
+                {recipe.totalRecipe && originalServings > 0
+                  ? Math.round(recipe.totalRecipe.fat / originalServings)
                   : recipe.nutritionPerServing?.fat ?? 0}
                 g
               </Text>
@@ -520,8 +511,8 @@ export default function RecipeDetailScreen() {
             </View>
             <View style={styles.nutritionItem}>
               <Text style={styles.nutritionValue}>
-                {recipe.totalRecipe && currentServings > 0
-                  ? (recipe.totalRecipe.fiber / currentServings).toFixed(1)
+                {recipe.totalRecipe && originalServings > 0
+                  ? (recipe.totalRecipe.fiber / originalServings).toFixed(1)
                   : recipe.nutritionPerServing?.fiber ?? 0}
                 g
               </Text>
