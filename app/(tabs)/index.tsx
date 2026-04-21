@@ -24,6 +24,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as Clipboard from "expo-clipboard";
 import { fonts } from "../../constants/theme";
+import { TravelFlipLoader } from "../../components/TravelFlipLoader";
 import { generateRecipe, setApiKey, getApiKey, recalculateNutrition } from "../../services/api";
 import { saveRecipe, getCookbooks, addCookbook } from "../../services/storage";
 import { Recipe, Ingredient, Macros, ImageTransform } from "../../types/recipe";
@@ -479,35 +480,38 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.inputCard}>
-              <TextInput
-                style={styles.input}
-                placeholder="https://www.tiktok.com/..."
-                placeholderTextColor="#A8B8A2"
-                value={url}
-                onChangeText={setUrl}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="url"
-                accessibilityLabel="Video-URL einfügen"
-              />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Rezept aus Video erstellen"
-                accessibilityState={{ disabled: loading, busy: loading }}
-                style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={handleGenerate}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
+              {!loading && (
+                <TextInput
+                  style={styles.input}
+                  placeholder="https://www.tiktok.com/..."
+                  placeholderTextColor="#A8B8A2"
+                  value={url}
+                  onChangeText={setUrl}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="url"
+                  accessibilityLabel="Video-URL einfügen"
+                />
+              )}
+              {loading ? (
+                <TravelFlipLoader label="Rezept wird generiert" height={72} />
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Rezept aus Video erstellen"
+                  style={styles.button}
+                  onPress={handleGenerate}
+                >
                   <Text style={styles.buttonText}>Rezept erstellen</Text>
-                )}
-              </Pressable>
-              <View style={styles.supported}>
-                <View style={styles.supportedItem}><View style={styles.supportedDot} /><Text style={styles.supportedText}>TikTok</Text></View>
-                <View style={styles.supportedItem}><View style={styles.supportedDot} /><Text style={styles.supportedText}>Instagram</Text></View>
-                <View style={styles.supportedItem}><View style={styles.supportedDot} /><Text style={styles.supportedText}>YouTube</Text></View>
-              </View>
+                </Pressable>
+              )}
+              {!loading && (
+                <View style={styles.supported}>
+                  <View style={styles.supportedItem}><View style={styles.supportedDot} /><Text style={styles.supportedText}>TikTok</Text></View>
+                  <View style={styles.supportedItem}><View style={styles.supportedDot} /><Text style={styles.supportedText}>Instagram</Text></View>
+                  <View style={styles.supportedItem}><View style={styles.supportedDot} /><Text style={styles.supportedText}>YouTube</Text></View>
+                </View>
+              )}
             </View>
 
             <GemueseDesTages />
