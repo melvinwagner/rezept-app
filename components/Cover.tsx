@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ViewStyle } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { fonts } from "../constants/theme";
 
 export type CoverLayoutId =
   | "classic"
@@ -289,8 +290,8 @@ const styles = StyleSheet.create({
 
   // Stats shared
   statsAbsRow: { position: "absolute" as any, left: "8%" as any, right: "8%" as any, flexDirection: "row" } as any,
-  statVal: { color: "#fff", fontSize: 16, fontWeight: "900" },
-  statLbl: { color: GOLD_MUTED, fontSize: 6, fontWeight: "700", letterSpacing: 1, marginTop: 2 },
+  statVal: { color: "#fff", fontSize: 16, fontFamily: fonts.displayBlack },
+  statLbl: { color: GOLD_MUTED, fontSize: 6, fontFamily: fonts.bodyBold, letterSpacing: 1, marginTop: 2 },
 
   // Brand shared
   brandTop: {
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
     textAlign: "center" as any,
     fontSize: 7,
     letterSpacing: 2,
-    fontWeight: "700",
+    fontFamily: fonts.bodyBold,
   } as any,
 
   // ============== CLASSIC ==============
@@ -318,7 +319,7 @@ const styles = StyleSheet.create({
     alignItems: "center" as any,
     justifyContent: "center" as any,
   } as any,
-  classicCrestLetter: { color: GOLD, fontSize: 20, fontWeight: "900" },
+  classicCrestLetter: { color: GOLD, fontSize: 20, fontFamily: fonts.displayBlack },
   titleBlock: {
     position: "absolute" as any,
     top: "36%" as any,
@@ -328,7 +329,7 @@ const styles = StyleSheet.create({
   } as any,
   classicTitle: {
     fontSize: 22,
-    fontWeight: "900",
+    fontFamily: fonts.displayBlack,
     color: "#fff",
     textAlign: "center" as any,
     letterSpacing: -0.8,
@@ -342,7 +343,7 @@ const styles = StyleSheet.create({
     textAlign: "center" as any,
     fontSize: 7,
     color: GOLD_MUTED,
-    fontWeight: "700",
+    fontFamily: fonts.bodyBold,
     letterSpacing: 1.5,
   } as any,
   classicFoot: {
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: "rgba(244,216,143,0.4)",
     letterSpacing: 1.5,
-    fontWeight: "700",
+    fontFamily: fonts.bodyBold,
   } as any,
 
   // ============== MINIMAL ==============
@@ -370,24 +371,24 @@ const styles = StyleSheet.create({
     alignItems: "center" as any,
     justifyContent: "center" as any,
   } as any,
-  minMonoText: { fontFamily: "FrankRuhlLibre_900Black", color: "#fff", fontSize: 12, letterSpacing: 0.5 },
+  minMonoText: { fontFamily: fonts.displayBlack, color: "#fff", fontSize: 12, letterSpacing: 0.5 },
   minEditionTag: {
     position: "absolute" as any,
     top: 16,
     right: 14,
     fontSize: 8,
     color: "rgba(255,255,255,0.6)",
-    fontWeight: "700",
+    fontFamily: fonts.bodyBold,
     letterSpacing: 1,
   } as any,
   minTitleWrap: { position: "absolute" as any, top: "25%" as any, left: 14, right: 14 } as any,
-  minTitle: { fontFamily: "FrankRuhlLibre_500Medium", fontSize: 36, color: "#fff", letterSpacing: -1, lineHeight: 36 },
-  minTitleBold: { fontFamily: "FrankRuhlLibre_900Black", fontSize: 36, color: "#fff", letterSpacing: -1, lineHeight: 36 },
+  minTitle: { fontFamily: fonts.displayMedium, fontSize: 36, color: "#fff", letterSpacing: -1, lineHeight: 36 },
+  minTitleBold: { fontFamily: fonts.displayBlack, fontSize: 36, color: "#fff", letterSpacing: -1, lineHeight: 36 },
   minHandle: {
     position: "absolute" as any,
     top: "58%" as any,
     left: 14,
-    fontFamily: "Manrope_700Bold",
+    fontFamily: fonts.bodyBold,
     fontSize: 10,
     color: "rgba(255,255,255,0.75)",
     letterSpacing: 1.5,
@@ -409,21 +410,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   } as any,
-  minStatV: { fontFamily: "FrankRuhlLibre_900Black", fontSize: 20, lineHeight: 22 },
-  minStatL: { fontFamily: "Manrope_700Bold", fontSize: 7, color: "rgba(255,255,255,0.65)", letterSpacing: 1.3, marginTop: 3 },
+  minStatV: { fontFamily: fonts.displayBlack, fontSize: 20, lineHeight: 22 },
+  minStatL: { fontFamily: fonts.bodyBold, fontSize: 7, color: "rgba(255,255,255,0.65)", letterSpacing: 1.3, marginTop: 3 },
   minFoot: {
     position: "absolute" as any,
     bottom: 8,
     right: 14,
     fontSize: 7,
     color: "rgba(255,255,255,0.55)",
-    fontWeight: "700",
+    fontFamily: fonts.bodyBold,
     letterSpacing: 1,
   } as any,
 
   // ============== EDITORIAL ==============
-  edNum: { position: "absolute" as any, top: 14, left: 14, fontSize: 8, color: "rgba(255,255,255,0.55)", fontWeight: "700", letterSpacing: 1.5 } as any,
-  edVol: { position: "absolute" as any, top: 14, right: 14, fontSize: 8, color: "rgba(255,255,255,0.55)", fontWeight: "700", letterSpacing: 1.5 } as any,
+  edNum: { position: "absolute" as any, top: 14, left: 14, fontSize: 8, color: "rgba(255,255,255,0.55)", fontFamily: fonts.bodyBold, letterSpacing: 1.5 } as any,
+  edVol: { position: "absolute" as any, top: 14, right: 14, fontSize: 8, color: "rgba(255,255,255,0.55)", fontFamily: fonts.bodyBold, letterSpacing: 1.5 } as any,
   edEyebrow: {
     position: "absolute" as any,
     top: "32%" as any,
@@ -431,7 +432,7 @@ const styles = StyleSheet.create({
     right: 10,
     textAlign: "center" as any,
     fontSize: 7,
-    fontWeight: "700",
+    fontFamily: fonts.bodyBold,
     letterSpacing: 2,
   } as any,
   edTitleWrap: {
@@ -441,7 +442,7 @@ const styles = StyleSheet.create({
     right: 10,
     alignItems: "center" as any,
   } as any,
-  edTitle: { fontSize: 26, fontWeight: "300", color: "#fff", letterSpacing: -0.8, lineHeight: 28, textAlign: "center" as any },
+  edTitle: { fontSize: 26, fontFamily: fonts.bodyRegular, color: "#fff", letterSpacing: -0.8, lineHeight: 28, textAlign: "center" as any },
   edHr: {
     position: "absolute" as any,
     top: "65%" as any,
@@ -470,7 +471,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   } as any,
-  edFootText: { fontSize: 7, color: "rgba(255,255,255,0.55)", letterSpacing: 1, fontWeight: "700", textTransform: "uppercase" as any },
+  edFootText: { fontSize: 7, color: "rgba(255,255,255,0.55)", letterSpacing: 1, fontFamily: fonts.bodyBold, textTransform: "uppercase" as any },
 
   // ============== BRUTALIST ==============
   brTopBar: {
@@ -485,12 +486,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   } as any,
-  brTopText: { color: "#fff", fontSize: 8, fontWeight: "900", letterSpacing: 1.5 },
+  brTopText: { color: "#fff", fontSize: 8, fontFamily: fonts.displayBlack, letterSpacing: 1.5 },
   brTitleWrap: { position: "absolute" as any, top: "16%" as any, left: 10, right: 10 } as any,
   brTitle: {
     color: "#fff",
     fontSize: 38,
-    fontWeight: "900",
+    fontFamily: fonts.displayBlack,
     letterSpacing: -1.8,
     lineHeight: 38,
   },
@@ -501,7 +502,7 @@ const styles = StyleSheet.create({
     right: 10,
     color: "rgba(255,255,255,0.7)",
     fontSize: 9,
-    fontWeight: "700",
+    fontFamily: fonts.bodyBold,
     letterSpacing: 1.5,
   } as any,
   brDiv: {
@@ -520,8 +521,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   } as any,
-  brStatV: { color: "#fff", fontSize: 17, fontWeight: "900", lineHeight: 18, letterSpacing: -0.5 },
-  brStatL: { color: "#fff", fontSize: 7, fontWeight: "900", letterSpacing: 1, marginTop: 2 },
+  brStatV: { color: "#fff", fontSize: 17, fontFamily: fonts.displayBlack, lineHeight: 18, letterSpacing: -0.5 },
+  brStatL: { color: "#fff", fontSize: 7, fontFamily: fonts.displayBlack, letterSpacing: 1, marginTop: 2 },
   brBottomBar: {
     position: "absolute" as any,
     bottom: 0,
@@ -532,7 +533,7 @@ const styles = StyleSheet.create({
     borderTopColor: "#fff",
     alignItems: "center" as any,
   } as any,
-  brBottomText: { color: "#fff", fontSize: 7, fontWeight: "900", letterSpacing: 2 },
+  brBottomText: { color: "#fff", fontSize: 7, fontFamily: fonts.displayBlack, letterSpacing: 2 },
 
   // ============== CRAFT ==============
   craftStamp: {
@@ -548,15 +549,15 @@ const styles = StyleSheet.create({
     justifyContent: "center" as any,
     transform: [{ rotate: "-8deg" }],
   } as any,
-  craftStampL: { fontSize: 6, color: GOLD, fontWeight: "800", letterSpacing: 1, textTransform: "uppercase" as any },
-  craftStampV: { fontSize: 13, color: GOLD, fontWeight: "900" },
+  craftStampL: { fontSize: 6, color: GOLD, fontFamily: fonts.bodyExtraBold, letterSpacing: 1, textTransform: "uppercase" as any },
+  craftStampV: { fontSize: 13, color: GOLD, fontFamily: fonts.displayBlack },
   craftBrand: {
     position: "absolute" as any,
     top: 14,
     left: 12,
     fontSize: 8,
     color: GOLD_SOFT,
-    fontWeight: "800",
+    fontFamily: fonts.bodyExtraBold,
     letterSpacing: 1.5,
     textTransform: "uppercase" as any,
   } as any,
@@ -569,8 +570,8 @@ const styles = StyleSheet.create({
     backgroundColor: GOLD_SOFTER,
   } as any,
   craftTitleWrap: { position: "absolute" as any, top: "26%" as any, left: 12, right: 12 } as any,
-  craftTitle: { fontSize: 24, fontWeight: "900", color: "#fff", letterSpacing: -0.8, lineHeight: 26 },
-  craftTitleItalic: { fontSize: 24, fontWeight: "400", fontStyle: "italic" as any, color: "#fff", letterSpacing: -0.4, lineHeight: 26 },
+  craftTitle: { fontSize: 24, fontFamily: fonts.displayBlack, color: "#fff", letterSpacing: -0.8, lineHeight: 26 },
+  craftTitleItalic: { fontSize: 24, fontFamily: fonts.bodyRegular, fontStyle: "italic" as any, color: "#fff", letterSpacing: -0.4, lineHeight: 26 },
   craftSub: {
     position: "absolute" as any,
     top: "52%" as any,
@@ -596,7 +597,7 @@ const styles = StyleSheet.create({
     textAlign: "center" as any,
     fontSize: 7,
     color: "rgba(244,216,143,0.4)",
-    fontWeight: "700",
+    fontFamily: fonts.bodyBold,
     letterSpacing: 1,
   } as any,
 
@@ -634,13 +635,13 @@ const styles = StyleSheet.create({
   bentoBrand: {
     fontSize: 7,
     color: GOLD_SOFT,
-    fontWeight: "700",
+    fontFamily: fonts.bodyBold,
     letterSpacing: 1.5,
     textTransform: "uppercase" as any,
   } as any,
   bentoTitle: {
     fontSize: 18,
-    fontWeight: "900",
+    fontFamily: fonts.displayBlack,
     color: "#fff",
     letterSpacing: -0.5,
     lineHeight: 20,
@@ -652,7 +653,7 @@ const styles = StyleSheet.create({
     fontStyle: "italic" as any,
     marginTop: 4,
   },
-  bentoStatV: { fontSize: 18, fontWeight: "900", color: "#fff", letterSpacing: -0.5, lineHeight: 20 },
-  bentoStatL: { fontSize: 6, color: GOLD_MUTED, fontWeight: "700", letterSpacing: 1, marginTop: 2 },
-  bentoFoot: { fontSize: 7, color: GOLD_MUTED, fontWeight: "700", letterSpacing: 1.5 },
+  bentoStatV: { fontSize: 18, fontFamily: fonts.displayBlack, color: "#fff", letterSpacing: -0.5, lineHeight: 20 },
+  bentoStatL: { fontSize: 6, color: GOLD_MUTED, fontFamily: fonts.bodyBold, letterSpacing: 1, marginTop: 2 },
+  bentoFoot: { fontSize: 7, color: GOLD_MUTED, fontFamily: fonts.bodyBold, letterSpacing: 1.5 },
 });

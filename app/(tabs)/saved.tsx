@@ -18,7 +18,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { getRecipes, deleteRecipe, getCookbooks, addCookbook, deleteCookbook, updateRecipe, getCookbookMeta, saveCookbookMeta, renameCookbookMeta, CookbookMeta } from "../../services/storage";
 import { Recipe } from "../../types/recipe";
 import { AccentText } from "../../components/AccentText";
-import { palettes } from "../../constants/theme";
+import { palettes, fonts } from "../../constants/theme";
 
 const CARD_COLORS = palettes.cookbookCards;
 
@@ -300,7 +300,14 @@ export default function SavedScreen() {
     return (
       <View style={styles.starsRow}>
         {[1, 2, 3, 4, 5].map((star) => (
-          <Pressable key={star} onPress={() => handleRate(recipe, star)}>
+          <Pressable
+            key={star}
+            onPress={() => handleRate(recipe, star)}
+            accessibilityRole="button"
+            accessibilityLabel={`Mit ${star} Stern${star > 1 ? "en" : ""} bewerten`}
+            accessibilityState={{ selected: star <= current }}
+            hitSlop={6}
+          >
             <Text style={[styles.star, star <= current && styles.starActive]}>
               {star <= current ? "★" : "☆"}
             </Text>
@@ -387,6 +394,9 @@ export default function SavedScreen() {
         key={item.id}
         style={[styles.masonryCard, selected && styles.masonryCardSelected]}
         onPress={onCardPress}
+        accessibilityRole="button"
+        accessibilityLabel={`Rezept öffnen: ${item.title}`}
+        accessibilityState={{ selected }}
       >
         <View style={[styles.masonryImageWrap, { aspectRatio }]}>
           {img ? (
@@ -398,7 +408,9 @@ export default function SavedScreen() {
             <Pressable
               style={styles.masonryMenuBtn}
               onPress={() => setRecipeMenuOpen(menuVisible ? null : item.id)}
-              hitSlop={8}
+              hitSlop={14}
+              accessibilityRole="button"
+              accessibilityLabel="Rezept-Menü öffnen"
             >
               <View style={styles.masonryMenuDot} />
               <View style={styles.masonryMenuDot} />
@@ -413,11 +425,21 @@ export default function SavedScreen() {
         </View>
         {menuVisible && (
           <View style={styles.masonryMenuPopup}>
-            <Pressable style={styles.masonryMenuItem} onPress={() => handleMenuMark(item.id)}>
+            <Pressable
+              style={styles.masonryMenuItem}
+              onPress={() => handleMenuMark(item.id)}
+              accessibilityRole="button"
+              accessibilityLabel="Mehrere Rezepte markieren"
+            >
               <Text style={styles.masonryMenuItemText}>Markieren</Text>
             </Pressable>
             <View style={styles.masonryMenuDivider} />
-            <Pressable style={styles.masonryMenuItem} onPress={() => handleMenuDelete(item)}>
+            <Pressable
+              style={styles.masonryMenuItem}
+              onPress={() => handleMenuDelete(item)}
+              accessibilityRole="button"
+              accessibilityLabel={`Rezept löschen: ${item.title}`}
+            >
               <Text style={[styles.masonryMenuItemText, styles.masonryMenuItemDanger]}>Löschen</Text>
             </Pressable>
           </View>
@@ -459,6 +481,9 @@ export default function SavedScreen() {
               setSelectedCookbook(null);
             }}
             style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="Zurück zur Kochbuch-Übersicht"
+            hitSlop={12}
           >
             <Text style={styles.backText}>‹ Kochbuch</Text>
           </Pressable>
@@ -524,6 +549,8 @@ export default function SavedScreen() {
         <Pressable
           onPress={() => { setSelectedCookbook(name); setSearchQuery(""); }}
           style={styles.magCard}
+          accessibilityRole="button"
+          accessibilityLabel={`Kochbuch öffnen: ${name}, ${count} ${count === 1 ? "Rezept" : "Rezepte"}`}
         >
           {/* Farbverlauf */}
           <LinearGradient
@@ -808,7 +835,7 @@ const styles = StyleSheet.create({
   } as any,
 
   sectionLabel: {
-    fontFamily: "FrankRuhlLibre_700Bold",
+    fontFamily: fonts.displayBold,
     fontSize: 22, color: "#2A3825", letterSpacing: -0.3,
     paddingHorizontal: 16, paddingTop: 22, paddingBottom: 12,
   },
@@ -857,10 +884,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 0.5, borderTopColor: "rgba(255,255,255,0.08)",
   },
   menuDropdownIcon: { fontSize: 14, color: "rgba(255,255,255,0.7)" },
-  menuDropdownText: { fontSize: 13, color: "#fff", fontWeight: "600" },
+  menuDropdownText: { fontSize: 13, color: "#fff", fontFamily: fonts.bodySemi },
   menuDropdownIconDanger: { fontSize: 14, color: "#E88A8A" },
-  menuDropdownTextDanger: { fontSize: 13, color: "#E88A8A", fontWeight: "600" },
-  modalTitle: { fontSize: 20, fontWeight: "800", color: "#2A3825", letterSpacing: -0.3, marginBottom: 18 },
+  menuDropdownTextDanger: { fontSize: 13, color: "#E88A8A", fontFamily: fonts.bodySemi },
+  modalTitle: { fontSize: 20, fontFamily: fonts.bodyExtraBold, color: "#2A3825", letterSpacing: -0.3, marginBottom: 18 },
   magContent: {
     position: "absolute" as any,
     bottom: 0, left: 0, right: 0,
@@ -869,10 +896,10 @@ const styles = StyleSheet.create({
   },
   magCat: {
     fontSize: 7, textTransform: "uppercase" as any, letterSpacing: 1.5,
-    color: "rgba(255,255,255,0.5)", fontWeight: "600", marginBottom: 3,
+    color: "rgba(255,255,255,0.5)", fontFamily: fonts.bodySemi, marginBottom: 3,
   },
   magName: {
-    fontSize: 18, fontWeight: "900", color: "#fff", lineHeight: 21, letterSpacing: -0.3,
+    fontSize: 18, fontFamily: fonts.displayBlack, color: "#fff", lineHeight: 21, letterSpacing: -0.3,
   },
   magSub: { fontSize: 9, color: "rgba(255,255,255,0.5)", marginTop: 3 },
   magCount: { fontSize: 9, color: "rgba(255,255,255,0.5)", marginTop: 5 },
@@ -901,7 +928,7 @@ const styles = StyleSheet.create({
     position: "absolute" as any, bottom: 0, left: 0, right: 0,
     padding: 10, paddingBottom: 12,
   },
-  sliderName: { fontSize: 14, fontWeight: "800", color: "#fff", lineHeight: 17 },
+  sliderName: { fontSize: 14, fontFamily: fonts.bodyExtraBold, color: "#fff", lineHeight: 17 },
   sliderSub: { fontSize: 9, color: "rgba(255,255,255,0.5)", marginTop: 3 },
 
   // === NEUE KATEGORIE ===
@@ -911,8 +938,8 @@ const styles = StyleSheet.create({
     backgroundColor: W(0.5), borderRadius: 18, padding: 15,
     borderWidth: 0.5, borderColor: W(0.5), gap: 10, cursor: "pointer" as any,
   },
-  addPlus: { fontSize: 20, color: "#5A9A4E", fontWeight: "700" },
-  addText: { fontSize: 14, color: "#6E8868", fontWeight: "500" },
+  addPlus: { fontSize: 20, color: "#5A9A4E", fontFamily: fonts.bodyBold },
+  addText: { fontSize: 14, color: "#6E8868", fontFamily: fonts.bodyMedium },
 
   // === MODAL ===
   modalOverlay: {
@@ -928,14 +955,14 @@ const styles = StyleSheet.create({
     width: 36, height: 4, borderRadius: 2, backgroundColor: "rgba(42,56,37,0.15)",
     alignSelf: "center", marginBottom: 16,
   },
-  modalTitle: { fontSize: 22, fontWeight: "800", color: "#2A3825", letterSpacing: -0.5, marginBottom: 4 },
+  modalTitle: { fontSize: 22, fontFamily: fonts.bodyExtraBold, color: "#2A3825", letterSpacing: -0.5, marginBottom: 4 },
   modalSubtitle: { fontSize: 13, color: "#8A9E82", marginBottom: 20 },
   modalInput: {
-    backgroundColor: W(0.5), borderRadius: 16, padding: 16, fontSize: 17, fontWeight: "600",
+    backgroundColor: W(0.5), borderRadius: 16, padding: 16, fontSize: 17, fontFamily: fonts.bodySemi,
     color: "#2A3825", borderWidth: 0.5, borderColor: W(0.9), marginBottom: 22,
   },
   modalSectionTitle: {
-    fontSize: 13, fontWeight: "700", color: "#5A7A52", letterSpacing: 0.3,
+    fontSize: 13, fontFamily: fonts.bodyBold, color: "#5A7A52", letterSpacing: 0.3,
     textTransform: "uppercase" as any, marginBottom: 10, marginTop: 4,
   },
   // Farben
@@ -965,8 +992,8 @@ const styles = StyleSheet.create({
   } as any,
   previewIconImg: { width: 46, height: 46, resizeMode: "contain" } as any,
   previewContent: { position: "absolute" as any, bottom: 0, left: 0, right: 0, padding: 10, paddingBottom: 12 },
-  previewCat: { fontSize: 6, textTransform: "uppercase" as any, letterSpacing: 1.5, color: "rgba(255,255,255,0.5)", fontWeight: "600", marginBottom: 2 },
-  previewName: { fontSize: 16, fontWeight: "900", color: "#fff", lineHeight: 19 },
+  previewCat: { fontSize: 6, textTransform: "uppercase" as any, letterSpacing: 1.5, color: "rgba(255,255,255,0.5)", fontFamily: fonts.bodySemi, marginBottom: 2 },
+  previewName: { fontSize: 16, fontFamily: fonts.displayBlack, color: "#fff", lineHeight: 19 },
   previewCount: { fontSize: 8, color: "rgba(255,255,255,0.5)", marginTop: 4 },
   previewLine: { width: 18, height: 2, backgroundColor: "rgba(255,255,255,0.3)", borderRadius: 1, marginTop: 5 },
   // Emoji-Hintergrundfarbe
@@ -1001,7 +1028,7 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   },
-  customTagBtnText: { color: "#fff", fontSize: 18, fontWeight: "600" },
+  customTagBtnText: { color: "#fff", fontSize: 18, fontFamily: fonts.bodySemi },
   // Tags
   tagGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 24 },
   tagChip: {
@@ -1011,7 +1038,7 @@ const styles = StyleSheet.create({
   tagChipActive: {
     backgroundColor: G, borderColor: "rgba(255,255,255,0.08)",
   },
-  tagChipText: { fontSize: 13, fontWeight: "600", color: "#5A7A52" },
+  tagChipText: { fontSize: 13, fontFamily: fonts.bodySemi, color: "#5A7A52" },
   tagChipTextActive: { color: "#fff" },
   // Buttons
   modalCreateBtn: {
@@ -1020,11 +1047,11 @@ const styles = StyleSheet.create({
     boxShadow: "0 4px 16px rgba(42,56,37,0.2)",
     marginBottom: 10,
   } as any,
-  modalCreateBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  modalCreateBtnText: { color: "#fff", fontSize: 15, fontFamily: fonts.bodyBold },
   modalCancelBtn: {
     borderRadius: 16, padding: 14, alignItems: "center",
   },
-  modalCancelBtnText: { color: "#8A9E82", fontSize: 14, fontWeight: "600" },
+  modalCancelBtnText: { color: "#8A9E82", fontSize: 14, fontFamily: fonts.bodySemi },
 
   // === DETAIL HEADER ===
   detailHeader: {
@@ -1032,13 +1059,13 @@ const styles = StyleSheet.create({
     backdropFilter: "blur(50px)", WebkitBackdropFilter: "blur(50px)",
   } as any,
   backButton: { marginBottom: 8 },
-  backText: { color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: "600" },
+  backText: { color: "rgba(255,255,255,0.5)", fontSize: 14, fontFamily: fonts.bodySemi },
   detailTitle: {
-    fontFamily: "FrankRuhlLibre_900Black",
+    fontFamily: fonts.displayBlack,
     fontSize: 32, color: "#fff", letterSpacing: -0.6, lineHeight: 36,
   },
   detailCount: {
-    fontFamily: "Manrope_600SemiBold",
+    fontFamily: fonts.bodySemi,
     fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 4, letterSpacing: 0.3,
   },
 
@@ -1111,7 +1138,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     cursor: "pointer" as any,
   } as any,
-  masonryMenuItemText: { fontSize: 13, color: "#2A3825", fontWeight: "600" },
+  masonryMenuItemText: { fontSize: 13, color: "#2A3825", fontFamily: fonts.bodySemi },
   masonryMenuItemDanger: { color: "#9B4444" },
   masonryMenuDivider: { height: 0.5, backgroundColor: "rgba(42,56,37,0.1)", marginHorizontal: 10 },
   masonryCheck: {
@@ -1127,14 +1154,14 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "#fff",
   },
-  masonryCheckText: { color: "#fff", fontSize: 14, fontWeight: "800", lineHeight: 16 },
+  masonryCheckText: { color: "#fff", fontSize: 14, fontFamily: fonts.bodyExtraBold, lineHeight: 16 },
   masonryInfo: {
     paddingVertical: 8,
     paddingHorizontal: 10,
   },
   masonryTitle: {
     fontSize: 13,
-    fontWeight: "700",
+    fontFamily: fonts.bodyBold,
     color: "#2A3825",
     lineHeight: 16,
     letterSpacing: -0.1,
@@ -1142,7 +1169,7 @@ const styles = StyleSheet.create({
   masonryMeta: {
     fontSize: 10,
     color: "#5A9A4E",
-    fontWeight: "600",
+    fontFamily: fonts.bodySemi,
     marginTop: 3,
   },
   masonryStarsWrap: {
@@ -1166,7 +1193,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.1)",
     boxShadow: "0 6px 24px rgba(0,0,0,0.25)",
   } as any,
-  selectionCounter: { color: "#fff", fontSize: 14, fontWeight: "700" },
+  selectionCounter: { color: "#fff", fontSize: 14, fontFamily: fonts.bodyBold },
   selectionActions: { flexDirection: "row", gap: 8 },
   selectionBtn: {
     paddingVertical: 8,
@@ -1175,7 +1202,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.1)",
     cursor: "pointer" as any,
   } as any,
-  selectionBtnText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+  selectionBtnText: { color: "#fff", fontSize: 12, fontFamily: fonts.bodyBold },
   selectionBtnDanger: { backgroundColor: "#C15454" },
   selectionBtnTextDanger: { color: "#fff" },
 
@@ -1191,12 +1218,12 @@ const styles = StyleSheet.create({
   recipeThumb: { width: 85, height: 95, resizeMode: "cover", borderRadius: 0 } as any,
   recipeCardBody: { flex: 1, padding: 14 },
   recipeTitle: {
-    fontFamily: "FrankRuhlLibre_700Bold",
+    fontFamily: fonts.displayBold,
     fontSize: 17, color: "#2A3825", marginBottom: 3, letterSpacing: -0.2, lineHeight: 21,
   },
-  recipeDesc: { fontFamily: "Manrope_500Medium", fontSize: 11, color: "#8A9E82", marginBottom: 6, lineHeight: 16 },
+  recipeDesc: { fontFamily: fonts.bodyMedium, fontSize: 11, color: "#8A9E82", marginBottom: 6, lineHeight: 16 },
   recipeMeta: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
-  recipeMetaText: { fontFamily: "Manrope_600SemiBold", fontSize: 10, color: "#5A9A4E", letterSpacing: 0.2 },
+  recipeMetaText: { fontFamily: fonts.bodySemi, fontSize: 10, color: "#5A9A4E", letterSpacing: 0.2 },
   recipeMetaDot: { marginHorizontal: 4, color: "rgba(42,56,37,0.15)" },
   starsRow: { flexDirection: "row", gap: 2 },
   star: { fontSize: 15, color: "rgba(42,56,37,0.18)" },
@@ -1214,7 +1241,7 @@ const styles = StyleSheet.create({
   actionButtonDanger: {},
   actionIcon: { fontSize: 13, color: "#5A9A4E" },
   actionIconDanger: { color: "#9B4444" },
-  actionLabel: { fontSize: 11, color: "#6E8868", fontWeight: "600" },
+  actionLabel: { fontSize: 11, color: "#6E8868", fontFamily: fonts.bodySemi },
   actionLabelDanger: { color: "#9B4444" },
 
   // === EMPTY ===

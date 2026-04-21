@@ -76,6 +76,8 @@ export async function generateRecipe(videoUrl: string): Promise<Recipe> {
     nutritionPerServing: parsed.nutritionPerServing,
     nutritionPer100g: parsed.nutritionPer100g,
     micronutrients: parsed.micronutrients || {},
+    ingredientNutrition: parsed.ingredientNutrition || [],
+    totalRecipe: parsed.totalRecipe || undefined,
     allergens: parsed.allergens || [],
     tags: parsed.tags || [],
     thumbnail: parsed.thumbnail || undefined,
@@ -110,6 +112,9 @@ export async function recalculateNutrition(ingredients: Ingredient[], servings: 
   nutritionPerServing: Macros;
   nutritionPer100g: Macros;
   micronutrients: Record<string, string>;
+  ingredientNutrition?: import("../types/recipe").IngredientNutrition[];
+  totalRecipe?: { kcal: number; protein: number; carbs: number; fat: number; fiber: number; weight_g: number };
+  effectiveServings?: number;
 }> {
   const response = await fetch(`${BASE_URL}/api/recalculate-nutrition`, {
     method: "POST",

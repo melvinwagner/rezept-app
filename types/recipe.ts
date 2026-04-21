@@ -14,6 +14,16 @@ export interface Macros {
   fiber: number;
 }
 
+export interface IngredientNutrition {
+  name: string;
+  weight_g: number;
+  kcal: number | null;
+  protein: number | null;
+  carbs: number | null;
+  fat: number | null;
+  source: string | null;
+}
+
 export interface ImageTransform {
   scale: number;
   translateX: number;
@@ -32,6 +42,15 @@ export interface Recipe {
   nutritionPerServing: Macros;
   nutritionPer100g: Macros;
   micronutrients: Record<string, string>;
+  ingredientNutrition?: IngredientNutrition[];
+  totalRecipe?: {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+    weight_g: number;
+  };
   allergens: string[];
   thumbnail?: string;
   imageUrl?: string;

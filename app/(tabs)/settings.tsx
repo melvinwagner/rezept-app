@@ -12,6 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { setApiKey, getApiKey } from "../../services/api";
 import { signOut } from "../../services/auth";
+import { fonts } from "../../constants/theme";
 
 const API_KEY_STORAGE = "claude_api_key";
 
@@ -389,7 +390,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  cardTitle: { fontSize: 18, fontWeight: "bold", color: "#2A3825", marginBottom: 8 },
+  cardTitle: { fontFamily: fonts.bodyBold, fontSize: 18, color: "#2A3825", marginBottom: 8 },
   cardDesc: { fontSize: 13, color: "#6E8868", marginBottom: 16, lineHeight: 18 },
   input: {
     backgroundColor: "rgba(255, 255, 255, 0.6)",
@@ -409,7 +410,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     boxShadow: "0 2px 10px rgba(42, 56, 37, 0.2)",
   } as any,
-  saveButtonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  saveButtonText: { fontFamily: fonts.bodySemi, color: "#fff", fontSize: 15 },
   clearButton: {
     backgroundColor: "rgba(42, 56, 37, 0.08)",
     borderRadius: 14,
@@ -419,7 +420,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: "rgba(42, 56, 37, 0.12)",
   },
-  clearButtonText: { color: "#98AE92", fontWeight: "600", fontSize: 15 },
+  clearButtonText: { fontFamily: fonts.bodySemi, color: "#98AE92", fontSize: 15 },
   exportButton: {
     backgroundColor: "#3F7A36",
     borderRadius: 14,
@@ -428,7 +429,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     boxShadow: "0 2px 10px rgba(92, 154, 80, 0.2)",
   } as any,
-  exportButtonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  exportButtonText: { fontFamily: fonts.bodySemi, color: "#fff", fontSize: 15 },
   importButton: {
     backgroundColor: "rgba(42, 56, 37, 0.85)",
     borderRadius: 14,
@@ -437,7 +438,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     boxShadow: "0 2px 10px rgba(107, 158, 136, 0.2)",
   } as any,
-  importButtonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  importButtonText: { fontFamily: fonts.bodySemi, color: "#fff", fontSize: 15 },
   shareButton: {
     backgroundColor: "#2A3825",
     borderRadius: 14,
@@ -446,12 +447,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     boxShadow: "0 2px 10px rgba(42, 56, 37, 0.2)",
   } as any,
-  shareButtonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  shareButtonText: { fontFamily: fonts.bodySemi, color: "#fff", fontSize: 15 },
   syncStatus: {
     marginTop: 12,
     fontSize: 13,
     color: "#5A9A4E",
-    fontWeight: "600",
+    fontFamily: fonts.bodySemi,
   },
   infoCard: {
     backgroundColor: "rgba(255, 255, 255, 0.6)",
@@ -469,7 +470,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  infoTitle: { fontSize: 16, fontWeight: "bold", color: "#2A3825", marginBottom: 12 },
+  infoTitle: { fontFamily: fonts.bodyBold, fontSize: 16, color: "#2A3825", marginBottom: 12 },
   infoText: { fontSize: 14, color: "#6E8868", lineHeight: 24 },
   version: {
     textAlign: "center",

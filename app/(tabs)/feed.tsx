@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { fonts } from "../../constants/theme";
 
 export default function FeedScreen() {
   return (
@@ -17,6 +18,6 @@ const styles = StyleSheet.create({
   content: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
   emptyState: { alignItems: "center" },
   emptyEmoji: { fontSize: 56, marginBottom: 16 },
-  emptyTitle: { fontSize: 22, fontWeight: "bold", color: "#2A3825", marginBottom: 6 },
+  emptyTitle: { fontSize: 22, fontFamily: fonts.bodyBold, color: "#2A3825", marginBottom: 6 },
   emptyText: { fontSize: 14, color: "#98AE92", textAlign: "center" },
 });

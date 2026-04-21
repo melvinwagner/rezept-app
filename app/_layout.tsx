@@ -6,12 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import BugReportButton from "../components/BugReportButton";
 import { getSession, onAuthChange } from "../services/auth";
 import {
-  useFonts as useFrankRuhl,
-  FrankRuhlLibre_500Medium,
-  FrankRuhlLibre_700Bold,
-  FrankRuhlLibre_900Black,
-} from "@expo-google-fonts/frank-ruhl-libre";
-import {
+  useFonts,
   Manrope_400Regular,
   Manrope_500Medium,
   Manrope_600SemiBold,
@@ -19,25 +14,25 @@ import {
   Manrope_800ExtraBold,
 } from "@expo-google-fonts/manrope";
 import {
+  Unbounded_500Medium,
   Unbounded_700Bold,
   Unbounded_800ExtraBold,
 } from "@expo-google-fonts/unbounded";
 import { Syncopate_700Bold } from "@expo-google-fonts/syncopate";
+import { fonts } from "../constants/theme";
 
 export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
   const [ready, setReady] = useState(false);
   const [hasSession, setHasSession] = useState(false);
-  const [fontsLoaded] = useFrankRuhl({
-    FrankRuhlLibre_500Medium,
-    FrankRuhlLibre_700Bold,
-    FrankRuhlLibre_900Black,
+  const [fontsLoaded] = useFonts({
     Manrope_400Regular,
     Manrope_500Medium,
     Manrope_600SemiBold,
     Manrope_700Bold,
     Manrope_800ExtraBold,
+    Unbounded_500Medium,
     Unbounded_700Bold,
     Unbounded_800ExtraBold,
     Syncopate_700Bold,
@@ -104,11 +99,11 @@ export default function RootLayout() {
           } as any,
           headerTintColor: "#EEF2EA",
           headerTitleStyle: {
-            fontFamily: "Unbounded_800ExtraBold",
+            fontFamily: fonts.displayBlack as any,
             fontSize: 15,
             letterSpacing: -0.3,
             color: "#EEF2EA",
-          },
+          } as any,
         }}
       >
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />

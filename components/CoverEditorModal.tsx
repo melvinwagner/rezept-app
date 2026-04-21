@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Cover, COVER_LAYOUTS, COVER_PALETTE, CoverLayoutId } from "./Cover";
+import { fonts } from "../constants/theme";
 
 type SaveValues = {
   name: string;
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   title: {
-    fontFamily: "FrankRuhlLibre_900Black",
+    fontFamily: fonts.displayBlack,
     fontSize: 26,
     color: "#2A3825",
     letterSpacing: -0.5,
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
   previewWrap: { alignItems: "center" as any, marginVertical: 12 } as any,
 
   sectionLabel: {
-    fontFamily: "Manrope_800ExtraBold",
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 10,
     letterSpacing: 1.8,
     color: "#8A9E82",
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.9)",
   },
   chipActive: { backgroundColor: "#2A3825", borderColor: "#2A3825" },
-  chipText: { fontFamily: "Manrope_700Bold", fontSize: 12, color: "#2A3825", letterSpacing: 0.3 },
+  chipText: { fontFamily: fonts.bodyBold, fontSize: 12, color: "#2A3825", letterSpacing: 0.3 },
   swatch: { width: 34, height: 34, borderRadius: 10 },
   swatchActive: { borderWidth: 2, borderColor: "#2A3825" },
 
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: "center" as any,
   } as any,
-  saveBtnText: { fontFamily: "Manrope_700Bold", color: "#fff", fontSize: 15, letterSpacing: 0.3 },
+  saveBtnText: { fontFamily: fonts.bodyBold, color: "#fff", fontSize: 15, letterSpacing: 0.3 },
   cancelBtn: { paddingVertical: 12, alignItems: "center" as any } as any,
-  cancelBtnText: { fontFamily: "Manrope_600SemiBold", color: "#8A9E82", fontSize: 13 },
+  cancelBtnText: { fontFamily: fonts.bodySemi, color: "#8A9E82", fontSize: 13 },
 });

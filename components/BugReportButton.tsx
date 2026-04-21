@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { reportBug, BugCategory } from "../services/api";
+import { fonts } from "../constants/theme";
 
 const CATEGORIES: BugCategory[] = ["Bug", "Feedback", "Idee"];
 
@@ -115,7 +116,7 @@ export default function BugReportButton() {
               <Text style={styles.counter}>{text.length} / 2000</Text>
 
               <Text style={styles.asUser}>
-                Gesendet als: <Text style={{ fontWeight: "700" }}>{username}</Text>
+                Gesendet als: <Text style={{ fontFamily: fonts.bodyBold }}>{username}</Text>
               </Text>
 
               {status === "err" && (
@@ -165,8 +166,8 @@ const styles = StyleSheet.create({
     elevation: 9,
   } as any,
   fabText: {
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 18,
-    fontWeight: "800",
     color: "#5A9A4E",
     lineHeight: 20,
   },
@@ -191,14 +192,14 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   title: {
-    fontFamily: "FrankRuhlLibre_900Black",
+    fontFamily: fonts.displayBlack,
     fontSize: 26,
     color: "#2A3825",
     letterSpacing: -0.5,
     lineHeight: 30,
   },
   subtitle: {
-    fontFamily: "Manrope_500Medium",
+    fontFamily: fonts.bodyMedium,
     fontSize: 13,
     color: "#5E6E55",
     marginTop: 6,
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   sectionLabel: {
-    fontFamily: "Manrope_800ExtraBold",
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 10,
     letterSpacing: 1.8,
     color: "#8A9E82",
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.9)",
   },
   chipActive: { backgroundColor: "#2A3825", borderColor: "#2A3825" },
-  chipText: { fontFamily: "Manrope_700Bold", fontSize: 12, color: "#2A3825", letterSpacing: 0.3 },
+  chipText: { fontFamily: fonts.bodyBold, fontSize: 12, color: "#2A3825", letterSpacing: 0.3 },
   input: {
     backgroundColor: "#FAFCF6",
     borderRadius: 14,
@@ -248,16 +249,16 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   err: {
+    fontFamily: fonts.bodySemi,
     fontSize: 13,
     color: "#B4472E",
     marginTop: 12,
-    fontWeight: "600",
   },
   ok: {
+    fontFamily: fonts.bodyBold,
     fontSize: 13,
     color: "#5A9A4E",
     marginTop: 12,
-    fontWeight: "700",
   },
   submitBtn: {
     marginTop: 18,
@@ -267,7 +268,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   submitBtnDisabled: { opacity: 0.5 },
-  submitBtnText: { color: "#fff", fontSize: 15, fontWeight: "700", letterSpacing: 0.3 },
+  submitBtnText: { fontFamily: fonts.bodyBold, color: "#fff", fontSize: 15, letterSpacing: 0.3 },
   cancelBtn: { paddingVertical: 12, alignItems: "center" },
-  cancelBtnText: { color: "#8A9E82", fontSize: 13, fontWeight: "600" },
+  cancelBtnText: { fontFamily: fonts.bodySemi, color: "#8A9E82", fontSize: 13 },
 });

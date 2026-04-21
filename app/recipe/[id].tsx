@@ -18,6 +18,7 @@ import { recalculateNutrition } from "../../services/api";
 import { percentDailyValue } from "../../services/dailyValues";
 import { Recipe, Ingredient, Macros } from "../../types/recipe";
 import { AccentText } from "../../components/AccentText";
+import { fonts } from "../../constants/theme";
 
 const ADD_UNIT_OPTIONS = ["g", "ml"];
 
@@ -33,7 +34,7 @@ function UnitPicker({ value, onChange }: { value: string | null; onChange: (v: s
           }}
           onPress={() => onChange(unit)}
         >
-          <Text style={{ fontSize: 13, fontWeight: "bold", color: value === unit ? "#fff" : "#6E8868" }}>{unit}</Text>
+          <Text style={{ fontSize: 13, fontFamily: fonts.bodyBold, color: value === unit ? "#fff" : "#6E8868" }}>{unit}</Text>
         </Pressable>
       ))}
     </View>
@@ -100,7 +101,26 @@ export default function RecipeDetailScreen() {
     setLoading(false);
   };
 
-  const scale = originalServings > 0 ? currentServings / originalServings : 1;
+  // Zutatenmengen bleiben absolut — der Slider teilt das fixe Rezept auf N Portionen.
+  const scale = 1;
+
+  // Gesamt-kcal des Rezepts (Single Source of Truth).
+  // Priorität: neues totalRecipe-Feld → sonst Summe ingredientNutrition → sonst perPortion × original.
+  const totalRecipeKcal = (() => {
+    if (recipe?.totalRecipe?.kcal != null && recipe.totalRecipe.kcal > 0) {
+      return recipe.totalRecipe.kcal;
+    }
+    if (recipe?.ingredientNutrition && recipe.ingredientNutrition.length > 0) {
+      return recipe.ingredientNutrition.reduce(
+        (sum, n) => sum + (n.kcal ?? 0),
+        0
+      );
+    }
+    if (recipe?.nutritionPerServing?.kcal != null && originalServings > 0) {
+      return recipe.nutritionPerServing.kcal * originalServings;
+    }
+    return 0;
+  })();
 
   const handleDeleteIngredient = (index: number) => {
     if (!recipe) return;
@@ -158,6 +178,7 @@ export default function RecipeDetailScreen() {
         nutritionPerServing: result.nutritionPerServing,
         nutritionPer100g: result.nutritionPer100g,
         micronutrients: result.micronutrients,
+        ingredientNutrition: result.ingredientNutrition,
       };
       await updateRecipe(updated);
       setRecipe(updated);
@@ -240,7 +261,11 @@ export default function RecipeDetailScreen() {
         </View>
         <View style={styles.metaItem}>
           <Text style={styles.metaLabel}>kcal / Portion</Text>
-          <Text style={styles.metaValue}>{recipe.nutritionPerServing?.kcal ?? "-"}</Text>
+          <Text style={styles.metaValue}>
+            {totalRecipeKcal > 0 && currentServings > 0
+              ? Math.round(totalRecipeKcal / currentServings)
+              : "-"}
+          </Text>
         </View>
         <View style={styles.metaItem}>
           <Text style={styles.metaLabel}>Vorbereitung</Text>
@@ -343,12 +368,38 @@ export default function RecipeDetailScreen() {
         </View>
       ) : (
         <View style={styles.ingredientsList}>
-          {recipe.ingredients.map((ing, i) => (
-            <View key={i} style={styles.ingredientRow}>
-              <View style={styles.bullet} />
-              <Text style={styles.ingredientText}>{formatIngredient(ing, scale)}</Text>
+          {recipe.ingredients.map((ing, i) => {
+            const nutrition = recipe.ingredientNutrition?.find(
+              (n) => n.name === ing.name
+            );
+            const ingKcal =
+              nutrition && nutrition.kcal != null
+                ? Math.round(nutrition.kcal * scale)
+                : null;
+            return (
+              <View key={i} style={styles.ingredientRow}>
+                <View style={styles.bullet} />
+                <View style={styles.ingredientTextWrap}>
+                  <Text style={styles.ingredientText}>{formatIngredient(ing, scale)}</Text>
+                  {ingKcal != null && (
+                    <Text style={styles.ingredientKcal}>
+                      {ingKcal} kcal
+                      {nutrition?.source ? ` · ${nutrition.source}` : ""}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            );
+          })}
+          {totalRecipeKcal > 0 && (
+            <View style={styles.ingredientTotalRow}>
+              <Text style={styles.ingredientTotalLabel}>Gesamt · ÷ Portionen</Text>
+              <Text style={styles.ingredientTotalValue}>
+                {Math.round(totalRecipeKcal)} kcal ÷ {currentServings} ={" "}
+                {currentServings > 0 ? Math.round(totalRecipeKcal / currentServings) : "-"} kcal/P
+              </Text>
             </View>
-          ))}
+          )}
         </View>
       )}
 
@@ -396,17 +447,57 @@ export default function RecipeDetailScreen() {
         </View>
       ) : null}
 
-      {recipe.nutritionPerServing && (
+      {(recipe.nutritionPerServing || recipe.totalRecipe) && (
         <View style={styles.nutritionSection}>
           <Text style={styles.sectionTitle}>Nährwerte</Text>
 
-          <Text style={styles.nutritionSubtitle}>Pro Portion</Text>
+          <Text style={styles.nutritionSubtitle}>
+            Pro Portion · {currentServings}{" "}
+            {currentServings === 1 ? "Portion" : "Portionen"}
+          </Text>
           <View style={styles.nutritionGrid}>
-            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.kcal}</Text><Text style={styles.nutritionLabel}>kcal</Text></View>
-            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.protein}g</Text><Text style={styles.nutritionLabel}>Protein</Text></View>
-            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.carbs}g</Text><Text style={styles.nutritionLabel}>Carbs</Text></View>
-            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.fat}g</Text><Text style={styles.nutritionLabel}>Fett</Text></View>
-            <View style={styles.nutritionItem}><Text style={styles.nutritionValue}>{recipe.nutritionPerServing.fiber}g</Text><Text style={styles.nutritionLabel}>Ballast.</Text></View>
+            <View style={styles.nutritionItem}>
+              <Text style={styles.nutritionValue}>
+                {currentServings > 0 ? Math.round(totalRecipeKcal / currentServings) : "-"}
+              </Text>
+              <Text style={styles.nutritionLabel}>kcal</Text>
+            </View>
+            <View style={styles.nutritionItem}>
+              <Text style={styles.nutritionValue}>
+                {recipe.totalRecipe && currentServings > 0
+                  ? Math.round(recipe.totalRecipe.protein / currentServings)
+                  : recipe.nutritionPerServing?.protein ?? 0}
+                g
+              </Text>
+              <Text style={styles.nutritionLabel}>Protein</Text>
+            </View>
+            <View style={styles.nutritionItem}>
+              <Text style={styles.nutritionValue}>
+                {recipe.totalRecipe && currentServings > 0
+                  ? Math.round(recipe.totalRecipe.carbs / currentServings)
+                  : recipe.nutritionPerServing?.carbs ?? 0}
+                g
+              </Text>
+              <Text style={styles.nutritionLabel}>Carbs</Text>
+            </View>
+            <View style={styles.nutritionItem}>
+              <Text style={styles.nutritionValue}>
+                {recipe.totalRecipe && currentServings > 0
+                  ? Math.round(recipe.totalRecipe.fat / currentServings)
+                  : recipe.nutritionPerServing?.fat ?? 0}
+                g
+              </Text>
+              <Text style={styles.nutritionLabel}>Fett</Text>
+            </View>
+            <View style={styles.nutritionItem}>
+              <Text style={styles.nutritionValue}>
+                {recipe.totalRecipe && currentServings > 0
+                  ? (recipe.totalRecipe.fiber / currentServings).toFixed(1)
+                  : recipe.nutritionPerServing?.fiber ?? 0}
+                g
+              </Text>
+              <Text style={styles.nutritionLabel}>Ballast.</Text>
+            </View>
           </View>
 
           <Text style={styles.nutritionSubtitle}>Pro 100g</Text>
@@ -483,7 +574,7 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 16, color: "#98AE92" },
   titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, gap: 10 },
   title: {
-    fontFamily: "FrankRuhlLibre_900Black",
+    fontFamily: fonts.displayBlack,
     fontSize: 26, color: "#2A3825", lineHeight: 30, marginBottom: 6, letterSpacing: -0.5,
   },
   creatorBadge: {
@@ -491,9 +582,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 4, marginTop: 8, maxWidth: 120,
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.1)",
   },
-  creatorPlatform: { fontSize: 9, fontWeight: "500", color: "rgba(255,255,255,0.5)", marginBottom: 1 },
+  creatorPlatform: { fontSize: 9, fontFamily: fonts.bodyMedium, color: "rgba(255,255,255,0.5)", marginBottom: 1 },
   creatorSeparator: { fontSize: 9, color: "rgba(255,255,255,0.3)" },
-  creatorHandle: { fontSize: 9, fontWeight: "600", color: "rgba(255,255,255,0.85)", flexShrink: 1 },
+  creatorHandle: { fontSize: 9, fontFamily: fonts.bodySemi, color: "rgba(255,255,255,0.85)", flexShrink: 1 },
   description: { fontSize: 13, color: "#6E8868", lineHeight: 19, marginTop: 4 },
 
   metaRow: {
@@ -504,18 +595,18 @@ const styles = StyleSheet.create({
   } as any,
   metaItem: { alignItems: "center", flex: 1, paddingHorizontal: 2 },
   metaLabel: { fontSize: 9, color: "rgba(255,255,255,0.45)", marginBottom: 3, textAlign: "center" as any, letterSpacing: 0.3 },
-  metaValue: { fontSize: 14, fontWeight: "700", color: "rgba(255,255,255,0.9)", textAlign: "center" as any },
+  metaValue: { fontSize: 14, fontFamily: fonts.bodyBold, color: "rgba(255,255,255,0.9)", textAlign: "center" as any },
   servingsRow: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 },
   servingsButton: {
     width: 18, height: 18, borderRadius: 9,
     backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.2)",
     alignItems: "center", justifyContent: "center",
   },
-  servingsButtonText: { color: "rgba(255,255,255,0.9)", fontSize: 11, fontWeight: "600", lineHeight: 13, textAlign: "center" as any },
-  servingsValue: { fontSize: 14, fontWeight: "700", color: "rgba(255,255,255,0.9)", minWidth: 14, textAlign: "center" as any },
+  servingsButtonText: { color: "rgba(255,255,255,0.9)", fontSize: 11, fontFamily: fonts.bodySemi, lineHeight: 13, textAlign: "center" as any },
+  servingsValue: { fontSize: 14, fontFamily: fonts.bodyBold, color: "rgba(255,255,255,0.9)", minWidth: 14, textAlign: "center" as any },
 
   sectionTitle: {
-    fontFamily: "FrankRuhlLibre_700Bold",
+    fontFamily: fonts.displayBold,
     fontSize: 22, color: "#2A3825", marginBottom: 14, letterSpacing: -0.3,
   },
   ingredientsList: {
@@ -524,9 +615,39 @@ const styles = StyleSheet.create({
     boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
     backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
   } as any,
-  ingredientRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
-  bullet: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#7BAA6E", marginRight: 12 },
-  ingredientText: { fontSize: 14, color: "#2A3825", flex: 1 },
+  ingredientRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 10 },
+  bullet: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#7BAA6E", marginRight: 12, marginTop: 7 },
+  ingredientTextWrap: { flex: 1 },
+  ingredientText: { fontSize: 14, color: "#2A3825" },
+  ingredientKcal: {
+    fontFamily: fonts.eyebrowCaps,
+    fontSize: 9,
+    color: "#8A9E82",
+    letterSpacing: 1.2,
+    marginTop: 2,
+    textTransform: "uppercase" as any,
+  },
+  ingredientTotalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center" as any,
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 0.5,
+    borderTopColor: "rgba(42,56,37,0.08)",
+  },
+  ingredientTotalLabel: {
+    fontFamily: fonts.eyebrowCaps,
+    fontSize: 9,
+    color: "#5E6E55",
+    letterSpacing: 1.4,
+    textTransform: "uppercase" as any,
+  },
+  ingredientTotalValue: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 12,
+    color: "#3F7A36",
+  },
 
   stepRow: {
     flexDirection: "row", marginBottom: 10, alignItems: "flex-start",
@@ -537,7 +658,7 @@ const styles = StyleSheet.create({
     width: 26, height: 26, borderRadius: 13,
     backgroundColor: G, justifyContent: "center", alignItems: "center", marginRight: 14,
   },
-  stepNumber: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  stepNumber: { color: "#fff", fontSize: 12, fontFamily: fonts.bodySemi },
   stepText: { flex: 1, fontSize: 14, color: "#2A3825", lineHeight: 21 },
 
   actions: { flexDirection: "row", gap: 10, marginTop: 24 },
@@ -545,12 +666,12 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: "#7BAA6E", borderRadius: 18, padding: 15, alignItems: "center",
     boxShadow: "0 4px 20px rgba(122,170,110,0.3)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.15)",
   } as any,
-  editButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  editButtonText: { color: "#fff", fontFamily: fonts.bodyBold, fontSize: 14 },
   shareButton: {
     flex: 1, backgroundColor: G, borderRadius: 18, padding: 15, alignItems: "center",
     boxShadow: "0 4px 20px rgba(42,56,37,0.18)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   } as any,
-  shareButtonText: { color: "#fff", fontWeight: "600", fontSize: 14 },
+  shareButtonText: { color: "#fff", fontFamily: fonts.bodySemi, fontSize: 14 },
   extrasSection: { marginTop: 22 },
   tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 14 },
   tagPill: {
@@ -558,40 +679,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 6,
     borderWidth: 0.5, borderColor: "rgba(122,170,110,0.3)",
   },
-  tagPillText: { fontSize: 12, fontWeight: "700", color: "#5A9A4E" },
+  tagPillText: { fontSize: 12, fontFamily: fonts.bodyBold, color: "#5A9A4E" },
   notesBox: {
     backgroundColor: W(0.55), borderRadius: 16, padding: 14,
     borderWidth: 0.5, borderColor: W(0.75),
     boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
   } as any,
-  notesLabel: { fontSize: 11, fontWeight: "700", color: "#5A7A52", letterSpacing: 0.3, textTransform: "uppercase" as any, marginBottom: 6 },
+  notesLabel: { fontSize: 11, fontFamily: fonts.bodyBold, color: "#5A7A52", letterSpacing: 0.3, textTransform: "uppercase" as any, marginBottom: 6 },
   notesText: { fontSize: 14, color: "#2A3825", lineHeight: 20 },
   sourceButton: {
     flex: 1, backgroundColor: W(0.5), borderRadius: 18, padding: 15, alignItems: "center",
     borderWidth: 0.5, borderColor: W(0.7),
     backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
   } as any,
-  sourceButtonText: { color: "#5A9A4E", fontWeight: "600", fontSize: 14 },
+  sourceButtonText: { color: "#5A9A4E", fontFamily: fonts.bodySemi, fontSize: 14 },
 
   nutritionSection: { marginTop: 24 },
-  nutritionSubtitle: { fontSize: 12, fontWeight: "600", color: "#8A9E82", marginBottom: 8, marginTop: 12, letterSpacing: 0.3, textTransform: "uppercase" as any },
+  nutritionSubtitle: { fontSize: 12, fontFamily: fonts.bodySemi, color: "#8A9E82", marginBottom: 8, marginTop: 12, letterSpacing: 0.3, textTransform: "uppercase" as any },
   nutritionGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 4 },
   nutritionItem: { backgroundColor: W(0.4), borderRadius: 14, paddingVertical: 10, paddingHorizontal: 6, alignItems: "center", minWidth: 58, flex: 1, borderWidth: 0.5, borderColor: W(0.6) },
-  nutritionValue: { fontSize: 15, fontWeight: "700", color: "#5A9A4E" },
+  nutritionValue: { fontSize: 15, fontFamily: fonts.bodyBold, color: "#5A9A4E" },
   nutritionLabel: { fontSize: 9, color: "#98AE92", marginTop: 2, textAlign: "center" as any },
   microButton: { backgroundColor: W(0.35), borderRadius: 14, padding: 12, alignItems: "center", marginTop: 16, borderWidth: 0.5, borderColor: W(0.5) },
-  microButtonText: { fontSize: 13, fontWeight: "600", color: "#6E8868" },
+  microButtonText: { fontSize: 13, fontFamily: fonts.bodySemi, color: "#6E8868" },
   microGrid: { backgroundColor: W(0.35), borderRadius: 14, padding: 12, marginTop: 10, borderWidth: 0.5, borderColor: W(0.5) },
   microRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" as any, paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: "rgba(42,56,37,0.06)" } as any,
   microName: { fontSize: 13, color: "#6E8868" },
   microValueBlock: { alignItems: "flex-end" as any } as any,
-  microValue: { fontSize: 13, fontWeight: "600", color: "#2A3825" },
-  microPct: { fontSize: 10, fontWeight: "700", color: "#5A9A4E", marginTop: 1, letterSpacing: 0.3 },
+  microValue: { fontSize: 13, fontFamily: fonts.bodySemi, color: "#2A3825" },
+  microPct: { fontSize: 10, fontFamily: fonts.bodyBold, color: "#5A9A4E", marginTop: 1, letterSpacing: 0.3 },
   microFootnote: { fontSize: 10, color: "#8A9E82", marginTop: 10, fontStyle: "italic" as any, lineHeight: 14 },
   allergenSection: { marginTop: 20, marginBottom: 20 },
   allergenRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   allergenBadge: { backgroundColor: "rgba(155,68,68,0.06)", borderRadius: 10, paddingHorizontal: 11, paddingVertical: 5, borderWidth: 0.5, borderColor: "rgba(155,68,68,0.1)" },
-  allergenText: { fontSize: 12, fontWeight: "600", color: "#9B4444" },
+  allergenText: { fontSize: 12, fontFamily: fonts.bodySemi, color: "#9B4444" },
 
   ingredientsHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   editIconBtn: {
@@ -617,9 +738,9 @@ const styles = StyleSheet.create({
     borderWidth: 0.5, borderColor: "rgba(155,68,68,0.15)",
     alignItems: "center", justifyContent: "center",
   },
-  deleteBtnText: { color: "#9B4444", fontWeight: "700", fontSize: 11 },
+  deleteBtnText: { color: "#9B4444", fontFamily: fonts.bodyBold, fontSize: 11 },
   addSection: { marginTop: 14, paddingTop: 14, borderTopWidth: 0.5, borderTopColor: "rgba(42,56,37,0.12)" },
-  addLabel: { fontSize: 13, fontWeight: "700", color: "#2A3825", marginBottom: 4 },
+  addLabel: { fontSize: 13, fontFamily: fonts.bodyBold, color: "#2A3825", marginBottom: 4 },
   addWarning: { fontSize: 10, color: "#9B4444", marginBottom: 10, lineHeight: 14 },
   addRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 12, marginTop: 4 },
   addBtn: {
@@ -628,14 +749,14 @@ const styles = StyleSheet.create({
     borderWidth: 0.5, borderColor: "rgba(122,170,110,0.2)",
     alignItems: "center", justifyContent: "center",
   },
-  addBtnText: { color: "#5A9A4E", fontWeight: "700", fontSize: 16, lineHeight: 18 },
+  addBtnText: { color: "#5A9A4E", fontFamily: fonts.bodyBold, fontSize: 16, lineHeight: 18 },
   recalcBtn: {
     backgroundColor: G, borderRadius: 14, padding: 13, alignItems: "center",
     marginTop: 10, marginBottom: 4,
     boxShadow: "0 3px 12px rgba(42,56,37,0.18)",
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   } as any,
-  recalcBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
+  recalcBtnText: { color: "#fff", fontFamily: fonts.bodyBold, fontSize: 13 },
   editErrorBox: {
     backgroundColor: "rgba(155,68,68,0.08)", borderRadius: 12, padding: 10, marginTop: 8,
     borderWidth: 0.5, borderColor: "rgba(155,68,68,0.15)",

@@ -11,7 +11,6 @@
     "dev": "concurrently -k --raw \"node server.js\" \"expo start\""
   },
   "dependencies": {
-    "@expo-google-fonts/frank-ruhl-libre": "^0.4.1",
     "@expo-google-fonts/manrope": "^0.4.2",
     "@expo-google-fonts/syncopate": "^0.4.1",
     "@expo-google-fonts/unbounded": "^0.4.1",

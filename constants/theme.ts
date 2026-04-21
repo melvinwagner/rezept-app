@@ -102,16 +102,16 @@ export const spacing = {
  * Font-Familien. In RN wird das Gewicht IM Familienamen mitgeliefert
  * (keine separate fontWeight-Prop nötig, das wirkt sonst inkonsistent).
  *
- * Display: Frank Ruhl Libre — editorial serif, warm-kuratiert, nicht reflex.
+ * Display: Unbounded — modern geometric für Hero-Titel und Headers.
  * Body/UI: Manrope — geometrischer Sans, präzise, modern, nicht reflex.
  */
 export const fonts = {
-  // Display (Frank Ruhl Libre) — editorial serif für Hero-Titel
-  displayBold: "FrankRuhlLibre_700Bold",
-  displayBlack: "FrankRuhlLibre_900Black",
-  displayMedium: "FrankRuhlLibre_500Medium",
+  // Display / Hero-Titel (Unbounded) — modern geometric
+  displayMedium: "Unbounded_500Medium",
+  displayBold: "Unbounded_700Bold",
+  displayBlack: "Unbounded_800ExtraBold",
 
-  // Header / Kategorie-Titel (Unbounded) — modern geometric, Kontrast zu FrankRuhl
+  // Header / Kategorie-Titel (Unbounded)
   headerBold: "Unbounded_700Bold",
   headerExtraBold: "Unbounded_800ExtraBold",
 
@@ -131,7 +131,7 @@ export const fonts = {
  * Gewichtung steckt in der fontFamily.
  */
 export const typography = {
-  // Editorial Display — Frank Ruhl Libre
+  // Display — Unbounded
   display:   { fontFamily: fonts.displayBlack,  fontSize: 32, letterSpacing: -0.8, lineHeight: 36 },
   hero:      { fontFamily: fonts.displayBlack,  fontSize: 28, letterSpacing: -0.6, lineHeight: 32 },
   h1:        { fontFamily: fonts.displayBold,   fontSize: 22, letterSpacing: -0.3, lineHeight: 27 },

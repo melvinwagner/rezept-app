@@ -1,6 +1,37 @@
 import { Tabs } from "expo-router";
-import { Text, Image, View } from "react-native";
+import { Text, Image, View, Pressable } from "react-native";
 import { colors, fonts } from "../../constants/theme";
+
+function TabButton({ children, onPress, onLongPress, accessibilityState, accessibilityLabel, testID }: any) {
+  const focused = !!accessibilityState?.selected;
+  return (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      accessibilityRole="button"
+      accessibilityState={accessibilityState}
+      accessibilityLabel={accessibilityLabel}
+      testID={testID}
+      style={{ flex: 1, alignItems: "center", justifyContent: "center", position: "relative" }}
+    >
+      {focused && (
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            top: 8,
+            bottom: 6,
+            left: 6,
+            right: 6,
+            borderRadius: 999,
+            backgroundColor: "rgba(184, 208, 136, 0.28)",
+          }}
+        />
+      )}
+      {children}
+    </Pressable>
+  );
+}
 
 export default function TabLayout() {
   return (
@@ -41,8 +72,8 @@ export default function TabLayout() {
           backgroundColor: "rgba(42, 56, 37, 0.97)",
           borderTopWidth: 0,
           height: 64,
-          paddingTop: 6,
-          paddingBottom: 8,
+          paddingTop: 0,
+          paddingBottom: 0,
           paddingHorizontal: 6,
           marginHorizontal: 14,
           marginBottom: 24,
@@ -54,15 +85,9 @@ export default function TabLayout() {
           WebkitBackdropFilter: "blur(50px)",
           boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
         } as any,
-        tabBarItemStyle: {
-          marginHorizontal: 3,
-          marginVertical: 6,
-          borderRadius: 18,
-          paddingVertical: 4,
-        },
-        tabBarActiveBackgroundColor: "rgba(184, 208, 136, 0.22)",
         tabBarActiveTintColor: "#B8D088",
         tabBarInactiveTintColor: "rgba(255,255,255,0.55)",
+        tabBarButton: (props) => <TabButton {...props} />,
       }}
     >
       <Tabs.Screen

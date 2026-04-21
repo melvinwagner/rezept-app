@@ -11,6 +11,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getRecipes, getCookbooks } from "../../services/storage";
 import { Cover, COVER_LAYOUTS, COVER_PALETTE, CoverLayoutId } from "../../components/Cover";
 import CoverEditorModal from "../../components/CoverEditorModal";
+import { fonts } from "../../constants/theme";
 
 export default function ProfileScreen() {
   const [recipeCount, setRecipeCount] = useState(0);
@@ -180,12 +181,12 @@ const styles = StyleSheet.create({
   } as any,
   tipText: {
     flex: 1,
-    fontFamily: "Manrope_500Medium",
+    fontFamily: fonts.bodyMedium,
     fontSize: 12,
     color: "#2A4220",
     lineHeight: 17,
   },
-  tipClose: { fontFamily: "Manrope_700Bold", fontSize: 16, color: "#5A9A4E", paddingHorizontal: 4 },
+  tipClose: { fontFamily: fonts.bodyBold, fontSize: 16, color: "#5A9A4E", paddingHorizontal: 4 },
 
   settings: {
     backgroundColor: "rgba(255,255,255,0.6)",
@@ -204,19 +205,19 @@ const styles = StyleSheet.create({
   },
   settingsIcon: { fontSize: 15, color: "#5A9A4E", width: 20, textAlign: "center" as any },
   settingsNum: {
-    fontFamily: "Manrope_800ExtraBold",
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 11,
     color: "#A8B8A2",
     width: 22,
     letterSpacing: 0.5,
     textAlign: "center" as any,
   },
-  settingsText: { flex: 1, fontFamily: "Manrope_600SemiBold", fontSize: 14, color: "#2A3825", letterSpacing: -0.1 },
+  settingsText: { flex: 1, fontFamily: fonts.bodySemi, fontSize: 14, color: "#2A3825", letterSpacing: -0.1 },
   settingsChevron: { fontSize: 18, color: "rgba(42,56,37,0.25)" },
   settingsDivider: { height: 0.5, backgroundColor: "rgba(42,56,37,0.06)", marginLeft: 48 },
 
   version: {
-    fontFamily: "Manrope_700Bold",
+    fontFamily: fonts.bodyBold,
     textAlign: "center" as any,
     color: "#A8B8A2",
     fontSize: 10,

@@ -292,6 +292,7 @@ async function calculateNutrition(ingredients, servings) {
   const totals = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
   const microTotals = {};
   let totalWeightG = 0;
+  const perIngredient = []; // Pro-Zutat-Breakdown für Client-Anzeige
 
   // Alle Zutaten parallel abfragen
   const results = await Promise.all(
@@ -302,19 +303,40 @@ async function calculateNutrition(ingredients, servings) {
   );
 
   for (const { ing, nutrition } of results) {
-    if (!nutrition) {
-      console.log(`  No nutrition data for: ${ing.name}`);
-      continue;
-    }
-
     // Bevorzuge weight_g (Claude-geschätzt, zutatenspezifisch); Fallback: alte UnitToGrams-Tabelle.
     const weightG =
       typeof ing.weight_g === "number" && ing.weight_g > 0
         ? ing.weight_g
         : unitToGrams(ing.amount, ing.unit);
-    const factor = weightG / 100;
 
-    console.log(`  ${ing.name}: ${weightG}g, ${Math.round(nutrition.kcal * factor)} kcal (source: ${nutrition.source})`);
+    if (!nutrition) {
+      console.log(`  No nutrition data for: ${ing.name}`);
+      perIngredient.push({
+        name: ing.name,
+        weight_g: weightG,
+        kcal: null,
+        protein: null,
+        carbs: null,
+        fat: null,
+        source: null,
+      });
+      continue;
+    }
+
+    const factor = weightG / 100;
+    const ingKcal = Math.round(nutrition.kcal * factor);
+
+    console.log(`  ${ing.name}: ${weightG}g, ${ingKcal} kcal (source: ${nutrition.source})`);
+
+    perIngredient.push({
+      name: ing.name,
+      weight_g: weightG,
+      kcal: ingKcal,
+      protein: Math.round(nutrition.protein * factor * 10) / 10,
+      carbs: Math.round(nutrition.carbs * factor * 10) / 10,
+      fat: Math.round(nutrition.fat * factor * 10) / 10,
+      source: nutrition.source || null,
+    });
 
     totals.kcal += nutrition.kcal * factor;
     totals.protein += nutrition.protein * factor;
@@ -331,13 +353,33 @@ async function calculateNutrition(ingredients, servings) {
     }
   }
 
-  // Pro Portion
+  // GESAMT (Single Source of Truth — alles andere wird davon abgeleitet)
+  const totalRecipe = {
+    kcal: Math.round(totals.kcal),
+    protein: Math.round(totals.protein * 10) / 10,
+    carbs: Math.round(totals.carbs * 10) / 10,
+    fat: Math.round(totals.fat * 10) / 10,
+    fiber: Math.round(totals.fiber * 10) / 10,
+    weight_g: Math.round(totalWeightG),
+  };
+
+  // EU-Durchschnitt: Hauptmahlzeit ≈ 650 kcal/Person.
+  // Wenn Claude's servings-Wert plausibel → nutzen. Sonst: Fallback auf EU-Standard.
+  const EU_STANDARD_KCAL_PER_PORTION = 650;
+  const claudeKcalPerPortion = servings > 0 ? totals.kcal / servings : 0;
+  const claudeSeemsReasonable =
+    servings > 0 && claudeKcalPerPortion >= 200 && claudeKcalPerPortion <= 1200;
+  const effectiveServings = claudeSeemsReasonable
+    ? servings
+    : Math.max(1, Math.round(totals.kcal / EU_STANDARD_KCAL_PER_PORTION));
+
+  // Pro Portion (für Backward-Compat — Client berechnet live aus totalRecipe)
   const perServing = {
-    kcal: Math.round(totals.kcal / servings),
-    protein: Math.round(totals.protein / servings),
-    carbs: Math.round(totals.carbs / servings),
-    fat: Math.round(totals.fat / servings),
-    fiber: Math.round((totals.fiber / servings) * 10) / 10,
+    kcal: Math.round(totals.kcal / effectiveServings),
+    protein: Math.round(totals.protein / effectiveServings),
+    carbs: Math.round(totals.carbs / effectiveServings),
+    fat: Math.round(totals.fat / effectiveServings),
+    fiber: Math.round((totals.fiber / effectiveServings) * 10) / 10,
   };
 
   // Pro 100g
@@ -352,7 +394,7 @@ async function calculateNutrition(ingredients, servings) {
   // Mikronährstoffe pro Portion formatieren
   const microPerServing = {};
   for (const [name, data] of Object.entries(microTotals)) {
-    const perS = data.total / servings;
+    const perS = data.total / effectiveServings;
     if (perS >= 1) {
       microPerServing[name] = `${Math.round(perS)} ${data.unit}`;
     } else if (perS > 0) {
@@ -360,9 +402,18 @@ async function calculateNutrition(ingredients, servings) {
     }
   }
 
-  console.log(`  Total: ${Math.round(totals.kcal)} kcal, ${perServing.kcal} kcal/Portion`);
+  console.log(
+    `  Total: ${totalRecipe.kcal} kcal · Claude-servings=${servings} (${Math.round(claudeKcalPerPortion)} kcal/p) · effective=${effectiveServings} → ${perServing.kcal} kcal/Portion`
+  );
 
-  return { perServing, per100g, microPerServing };
+  return {
+    perServing,
+    per100g,
+    microPerServing,
+    perIngredient,
+    totalRecipe,
+    effectiveServings,
+  };
 }
 
 async function searchFoodImage(recipeName) {
@@ -727,11 +778,17 @@ HINWEIS zu Tags:
       recipe.nutritionPerServing = nutrition.perServing;
       recipe.nutritionPer100g = nutrition.per100g;
       recipe.micronutrients = nutrition.microPerServing;
+      recipe.ingredientNutrition = nutrition.perIngredient;
+      recipe.totalRecipe = nutrition.totalRecipe;
+      // Wenn Claude's servings unplausibel → auf EU-Standard überschreiben
+      recipe.servings = nutrition.effectiveServings;
     } catch (nutritionErr) {
       console.error("Nutrition calculation failed:", nutritionErr.message);
       recipe.nutritionPerServing = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
       recipe.nutritionPer100g = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
       recipe.micronutrients = {};
+      recipe.ingredientNutrition = [];
+      recipe.totalRecipe = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, weight_g: 0 };
     }
 
     // Step 5: Food-Bild über Pexels anhand des Rezeptnamens generieren
@@ -780,6 +837,9 @@ app.post("/api/recalculate-nutrition", async (req, res) => {
       nutritionPerServing: nutrition.perServing,
       nutritionPer100g: nutrition.per100g,
       micronutrients: nutrition.microPerServing,
+      ingredientNutrition: nutrition.perIngredient,
+      totalRecipe: nutrition.totalRecipe,
+      effectiveServings: nutrition.effectiveServings,
     });
   } catch (err) {
     console.error("Recalculate error:", err.message);

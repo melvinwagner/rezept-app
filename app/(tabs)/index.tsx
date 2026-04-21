@@ -23,6 +23,7 @@ import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as Clipboard from "expo-clipboard";
+import { fonts } from "../../constants/theme";
 import { generateRecipe, setApiKey, getApiKey, recalculateNutrition } from "../../services/api";
 import { saveRecipe, getCookbooks, addCookbook } from "../../services/storage";
 import { Recipe, Ingredient, Macros, ImageTransform } from "../../types/recipe";
@@ -86,7 +87,7 @@ function UnitPicker({ value, onChange }: { value: string | null; onChange: (v: s
         >
           <Text style={{
             fontSize: 13,
-            fontWeight: "bold",
+            fontFamily: fonts.bodyBold,
             color: value === unit ? "#fff" : "#6E8868",
           }}>{unit}</Text>
         </Pressable>
@@ -967,14 +968,14 @@ const styles = StyleSheet.create({
   // === LANDING ===
   header: { alignItems: "center", marginBottom: 4, marginTop: 6 },
   tagline: {
-    fontFamily: "FrankRuhlLibre_900Black",
+    fontFamily: fonts.displayBlack,
     fontSize: 40,
     color: "#2A3825",
     textAlign: "center",
     lineHeight: 44,
     letterSpacing: -1,
   },
-  taglineAccent: { color: "#3F7A36", fontFamily: "FrankRuhlLibre_900Black" },
+  taglineAccent: { color: "#3F7A36", fontFamily: fonts.displayBlack },
   adPlaceholder: {
     width: "100%" as any,
     height: 80,
@@ -988,7 +989,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     backgroundColor: "rgba(42,56,37,0.03)",
   },
-  adLabel: { fontSize: 9, color: "rgba(42,56,37,0.2)", fontWeight: "600", letterSpacing: 1, textTransform: "uppercase" as any },
+  adLabel: { fontSize: 9, color: "rgba(42,56,37,0.2)", fontFamily: fonts.bodySemi, letterSpacing: 1, textTransform: "uppercase" as any },
   adPlaceholderLarge: {
     width: "100%" as any,
     height: 200,
@@ -1012,7 +1013,7 @@ const styles = StyleSheet.create({
   supported: { flexDirection: "row", justifyContent: "center", gap: 16, marginTop: 14 },
   supportedItem: { flexDirection: "row", alignItems: "center", gap: 5 },
   supportedDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#7BAA6E" },
-  supportedText: { fontFamily: "Manrope_700Bold", fontSize: 10, color: "#98AE92", letterSpacing: 1.2, textTransform: "uppercase" as any },
+  supportedText: { fontFamily: fonts.eyebrowCaps, fontSize: 9, color: "#98AE92", letterSpacing: 2, textTransform: "uppercase" as any },
   input: {
     backgroundColor: W(0.65), borderRadius: 18, padding: 16, fontSize: 15,
     borderWidth: 0.5, borderColor: W(0.8), marginBottom: 12,
@@ -1027,7 +1028,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   } as any,
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { fontFamily: "Manrope_700Bold", color: "#fff", fontSize: 15, letterSpacing: 0.3 },
+  buttonText: { fontFamily: fonts.bodyBold, color: "#fff", fontSize: 15, letterSpacing: 0.3 },
 
   // === ALERTS ===
   errorBox: { backgroundColor: "rgba(155,68,68,0.07)", borderRadius: 16, padding: 14, marginBottom: 16, borderWidth: 0.5, borderColor: "rgba(155,68,68,0.12)" },
@@ -1041,7 +1042,7 @@ const styles = StyleSheet.create({
     backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
     zIndex: 100,
   } as any,
-  toastText: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  toastText: { color: "#fff", fontSize: 14, fontFamily: fonts.bodySemi },
 
   // === RECIPE CARD ===
   previewCard: {
@@ -1062,9 +1063,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 4, marginTop: 8, width: 100,
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.1)",
   },
-  creatorPlatform: { fontSize: 8, fontWeight: "500" as any, color: "rgba(255,255,255,0.5)", marginBottom: 1, textAlign: "center" as any },
-  creatorHandle: { fontSize: 8, fontWeight: "600" as any, color: "rgba(255,255,255,0.85)", textAlign: "center" as any },
-  recipeTitle: { fontSize: 19, fontWeight: "700" as any, color: "#2A3825", lineHeight: 25, marginBottom: 5, letterSpacing: -0.3 },
+  creatorPlatform: { fontSize: 8, fontFamily: fonts.bodyMedium as any, color: "rgba(255,255,255,0.5)", marginBottom: 1, textAlign: "center" as any },
+  creatorHandle: { fontSize: 8, fontFamily: fonts.bodySemi as any, color: "rgba(255,255,255,0.85)", textAlign: "center" as any },
+  recipeTitle: { fontSize: 19, fontFamily: fonts.bodyBold as any, color: "#2A3825", lineHeight: 25, marginBottom: 5, letterSpacing: -0.3 },
   recipeDesc: { fontSize: 12.5, color: "#6E8868", lineHeight: 18 },
 
   // === META ROW ===
@@ -1076,7 +1077,7 @@ const styles = StyleSheet.create({
   } as any,
   metaItem: { alignItems: "center", flex: 1, paddingHorizontal: 2 },
   metaLabel: { fontSize: 9, color: "rgba(255,255,255,0.45)", marginBottom: 3, textAlign: "center" as any, letterSpacing: 0.3 },
-  metaValue: { fontSize: 13, fontWeight: "600", color: "rgba(255,255,255,0.9)", textAlign: "center" as any },
+  metaValue: { fontSize: 13, fontFamily: fonts.bodySemi, color: "rgba(255,255,255,0.9)", textAlign: "center" as any },
   servingsRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   servingsButton: {
     width: 16, height: 16, borderRadius: 8,
@@ -1084,11 +1085,11 @@ const styles = StyleSheet.create({
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.2)",
     alignItems: "center", justifyContent: "center", cursor: "pointer" as any,
   },
-  servingsButtonText: { color: "rgba(255,255,255,0.9)", fontSize: 10, fontWeight: "600", lineHeight: 12, textAlign: "center" as any },
-  servingsValue: { fontSize: 13, fontWeight: "700", color: "rgba(255,255,255,0.9)", minWidth: 12, textAlign: "center" as any },
+  servingsButtonText: { color: "rgba(255,255,255,0.9)", fontSize: 10, fontFamily: fonts.bodySemi, lineHeight: 12, textAlign: "center" as any },
+  servingsValue: { fontSize: 13, fontFamily: fonts.bodyBold, color: "rgba(255,255,255,0.9)", minWidth: 12, textAlign: "center" as any },
 
   // === SECTIONS ===
-  sectionTitle: { fontSize: 17, fontWeight: "700", color: "#2A3825", marginBottom: 12, marginTop: 10, letterSpacing: -0.2 },
+  sectionTitle: { fontSize: 17, fontFamily: fonts.bodyBold, color: "#2A3825", marginBottom: 12, marginTop: 10, letterSpacing: -0.2 },
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12, marginTop: 10 },
 
   // === INGREDIENTS ===
@@ -1103,7 +1104,7 @@ const styles = StyleSheet.create({
   stepNumber: {
     width: 24, height: 24, borderRadius: 12,
     backgroundColor: G, color: "#fff", textAlign: "center",
-    lineHeight: 24, fontSize: 12, fontWeight: "600", marginRight: 12,
+    lineHeight: 24, fontSize: 12, fontFamily: fonts.bodySemi, marginRight: 12,
     overflow: "hidden" as any,
   },
   stepText: { flex: 1, fontSize: 14, color: "#2A3825", lineHeight: 21 },
@@ -1115,7 +1116,7 @@ const styles = StyleSheet.create({
     boxShadow: "0 6px 24px rgba(42,56,37,0.18)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
     backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
   } as any,
-  saveButtonText: { color: "#fff", fontSize: 15, fontWeight: "600", letterSpacing: 0.3 },
+  saveButtonText: { color: "#fff", fontSize: 15, fontFamily: fonts.bodySemi, letterSpacing: 0.3 },
 
   // === EDIT MODE ===
   editButton: { width: 32, height: 32, borderRadius: 16, backgroundColor: "transparent", alignItems: "center", justifyContent: "center", cursor: "pointer" as any },
@@ -1127,35 +1128,35 @@ const styles = StyleSheet.create({
   editNameLabel: { flex: 1, fontSize: 13, color: "#2A3825" },
   editName: { flex: 1, backgroundColor: W(0.55), borderRadius: 10, padding: 8, fontSize: 13, borderWidth: 0.5, borderColor: W(0.7) },
   addSection: { marginTop: 14, paddingTop: 14, borderTopWidth: 0.5, borderTopColor: M(0.1) },
-  addLabel: { fontSize: 13, fontWeight: "600", color: "#2A3825", marginBottom: 4 },
+  addLabel: { fontSize: 13, fontFamily: fonts.bodySemi, color: "#2A3825", marginBottom: 4 },
   addWarning: { fontSize: 10, color: "#9B4444", marginBottom: 10, lineHeight: 15 },
   deleteButton: { width: 26, height: 26, borderRadius: 13, backgroundColor: "rgba(155,68,68,0.07)", borderWidth: 0.5, borderColor: "rgba(155,68,68,0.12)", alignItems: "center", justifyContent: "center", cursor: "pointer" as any },
-  deleteButtonText: { color: "#9B4444", fontWeight: "600", fontSize: 11 },
+  deleteButtonText: { color: "#9B4444", fontFamily: fonts.bodySemi, fontSize: 11 },
   addRow: { flexDirection: "row", alignItems: "center", marginBottom: 12, gap: 6, marginTop: 4 },
   addButton: { width: 26, height: 26, borderRadius: 13, backgroundColor: M(0.08), borderWidth: 0.5, borderColor: M(0.15), alignItems: "center", justifyContent: "center", cursor: "pointer" as any },
-  addButtonText: { color: "#5A9A4E", fontWeight: "600", fontSize: 15, lineHeight: 17 },
+  addButtonText: { color: "#5A9A4E", fontFamily: fonts.bodySemi, fontSize: 15, lineHeight: 17 },
   recalcButton: { backgroundColor: G, borderRadius: 14, padding: 12, alignItems: "center", marginTop: 8, marginBottom: 8, cursor: "pointer" as any, boxShadow: "0 2px 10px rgba(42,56,37,0.15)", borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)" } as any,
-  recalcButtonText: { color: "#fff", fontWeight: "600", fontSize: 13 },
+  recalcButtonText: { color: "#fff", fontFamily: fonts.bodySemi, fontSize: 13 },
 
   // === NUTRITION ===
   nutritionSection: { marginTop: 24 },
-  nutritionSubtitle: { fontSize: 13, fontWeight: "600", color: "#8A9E82", marginBottom: 8, marginTop: 12, letterSpacing: 0.3, textTransform: "uppercase" as any },
+  nutritionSubtitle: { fontSize: 13, fontFamily: fonts.bodySemi, color: "#8A9E82", marginBottom: 8, marginTop: 12, letterSpacing: 0.3, textTransform: "uppercase" as any },
   nutritionGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 4 },
   nutritionItem: { backgroundColor: W(0.4), borderRadius: 14, paddingVertical: 10, paddingHorizontal: 6, alignItems: "center", minWidth: 58, flex: 1, borderWidth: 0.5, borderColor: W(0.6) },
-  nutritionValue: { fontSize: 15, fontWeight: "700", color: "#5A9A4E" },
+  nutritionValue: { fontSize: 15, fontFamily: fonts.bodyBold, color: "#5A9A4E" },
   nutritionLabel: { fontSize: 9, color: "#98AE92", marginTop: 2, textAlign: "center" as any },
   microButton: { backgroundColor: W(0.35), borderRadius: 14, padding: 12, alignItems: "center", marginTop: 16, cursor: "pointer" as any, borderWidth: 0.5, borderColor: W(0.5) },
-  microButtonText: { fontSize: 13, fontWeight: "600", color: "#6E8868" },
+  microButtonText: { fontSize: 13, fontFamily: fonts.bodySemi, color: "#6E8868" },
   microGrid: { backgroundColor: W(0.35), borderRadius: 14, padding: 12, marginTop: 10, borderWidth: 0.5, borderColor: W(0.5) },
   microRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: M(0.06) },
   microName: { fontSize: 13, color: "#6E8868" },
-  microValue: { fontSize: 13, fontWeight: "600", color: "#2A3825" },
+  microValue: { fontSize: 13, fontFamily: fonts.bodySemi, color: "#2A3825" },
 
   // === ALLERGENS ===
   allergenSection: { marginTop: 20 },
   allergenRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   allergenBadge: { backgroundColor: "rgba(155,68,68,0.06)", borderRadius: 10, paddingHorizontal: 11, paddingVertical: 5, borderWidth: 0.5, borderColor: "rgba(155,68,68,0.1)" },
-  allergenText: { fontSize: 12, fontWeight: "600", color: "#9B4444" },
+  allergenText: { fontSize: 12, fontFamily: fonts.bodySemi, color: "#9B4444" },
 
   // === NEW RECIPE BUTTON ===
   newRecipeButton: {
@@ -1164,7 +1165,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
     boxShadow: "0 6px 24px rgba(42,56,37,0.18)",
   } as any,
-  newRecipeButtonText: { color: "#fff", fontSize: 15, fontWeight: "600", letterSpacing: 0.3 },
+  newRecipeButtonText: { color: "#fff", fontSize: 15, fontFamily: fonts.bodySemi, letterSpacing: 0.3 },
 
 
   // === GEMÜSE DES TAGES ===
@@ -1175,15 +1176,15 @@ const styles = StyleSheet.create({
     overflow: "hidden" as any,
   } as any,
   gemueseHeader: { marginBottom: 12 },
-  gemueseLabel: { fontFamily: "Syncopate_700Bold", fontSize: 10, color: "#8A9E82", letterSpacing: 2.5, textTransform: "uppercase" as any, textAlign: "center" as any },
+  gemueseLabel: { fontFamily: fonts.eyebrowCaps, fontSize: 10, color: "#8A9E82", letterSpacing: 2.5, textTransform: "uppercase" as any, textAlign: "center" as any },
   gemueseImage: { width: "100%" as any, height: 160, borderRadius: 14, marginBottom: 12 },
-  gemuese_name: { fontFamily: "FrankRuhlLibre_900Black", fontSize: 26, color: "#2A3825", letterSpacing: -0.5, lineHeight: 30, marginBottom: 6 },
-  gemueseText: { fontFamily: "Manrope_500Medium", fontSize: 13, color: "#6E8868", lineHeight: 19, marginBottom: 14 },
+  gemuese_name: { fontFamily: fonts.displayBlack, fontSize: 26, color: "#2A3825", letterSpacing: -0.5, lineHeight: 30, marginBottom: 6 },
+  gemueseText: { fontFamily: fonts.bodyMedium, fontSize: 13, color: "#6E8868", lineHeight: 19, marginBottom: 14 },
   gemueseBtn: {
     backgroundColor: G, borderRadius: 14, padding: 13, alignItems: "center",
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   },
-  gemuese_btnText: { fontFamily: "Manrope_700Bold", color: "#fff", fontSize: 13, letterSpacing: 0.2 },
+  gemuese_btnText: { fontFamily: fonts.bodyBold, color: "#fff", fontSize: 13, letterSpacing: 0.2 },
 
   // === WIDGET SLIDER ===
   widgetSection: { marginTop: 24, marginBottom: 10 },
@@ -1194,22 +1195,22 @@ const styles = StyleSheet.create({
   } as any,
   widgetHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
   widgetEmoji: { fontSize: 32 },
-  widgetLabel: { fontSize: 15, fontWeight: "700", color: "#2A3825", letterSpacing: -0.2 },
+  widgetLabel: { fontSize: 15, fontFamily: fonts.bodyBold, color: "#2A3825", letterSpacing: -0.2 },
   widgetText: { fontSize: 14, color: "#2A3825", lineHeight: 21 },
-  factNumber: { fontSize: 32, fontWeight: "800", color: "#5A9A4E", textAlign: "center" as any, marginVertical: 6, letterSpacing: -1 },
+  factNumber: { fontSize: 32, fontFamily: fonts.bodyExtraBold, color: "#5A9A4E", textAlign: "center" as any, marginVertical: 6, letterSpacing: -1 },
   factText: { fontSize: 12, color: "#8A9E82", textAlign: "center" as any, lineHeight: 17 },
   widgetActions: { flexDirection: "row", gap: 8, marginTop: 14 },
   widgetBtnJa: {
     flex: 1, backgroundColor: G, borderRadius: 12, padding: 10, alignItems: "center",
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   },
-  widgetBtnJaText: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  widgetBtnJaText: { color: "#fff", fontSize: 12, fontFamily: fonts.bodySemi },
   widgetBtnNein: {
     flex: 1, backgroundColor: W(0.45), borderRadius: 12, padding: 10, alignItems: "center",
     borderWidth: 0.5, borderColor: W(0.65),
   },
-  widgetBtnNeinText: { color: "#5A9A4E", fontSize: 12, fontWeight: "600" },
-  widgetAnswered: { fontSize: 13, color: "#7BAA6E", fontWeight: "600", marginTop: 4 },
+  widgetBtnNeinText: { color: "#5A9A4E", fontSize: 12, fontFamily: fonts.bodySemi },
+  widgetAnswered: { fontSize: 13, color: "#7BAA6E", fontFamily: fonts.bodySemi, marginTop: 4 },
   widgetDots: { flexDirection: "row", justifyContent: "center", gap: 5, marginTop: 12 },
   widgetDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "rgba(42,56,37,0.12)" },
   widgetDotActive: { backgroundColor: "#7BAA6E", width: 18 },
@@ -1224,26 +1225,26 @@ const styles = StyleSheet.create({
     width: 36, height: 4, borderRadius: 2, backgroundColor: "rgba(42,56,37,0.15)",
     alignSelf: "center", marginBottom: 16,
   },
-  modalTitle: { fontSize: 22, fontWeight: "800", color: "#2A3825", letterSpacing: -0.5, marginBottom: 18, marginTop: 4 },
+  modalTitle: { fontSize: 22, fontFamily: fonts.bodyExtraBold, color: "#2A3825", letterSpacing: -0.5, marginBottom: 18, marginTop: 4 },
   modalSectionTitle: {
-    fontSize: 13, fontWeight: "700", color: "#5A7A52", letterSpacing: 0.3,
+    fontSize: 13, fontFamily: fonts.bodyBold, color: "#5A7A52", letterSpacing: 0.3,
     textTransform: "uppercase" as any, marginBottom: 10, marginTop: 10,
   },
   modalInput: {
-    backgroundColor: W(0.5), borderRadius: 16, padding: 16, fontSize: 16, fontWeight: "600",
+    backgroundColor: W(0.5), borderRadius: 16, padding: 16, fontSize: 16, fontFamily: fonts.bodySemi,
     color: "#2A3825", borderWidth: 0.5, borderColor: W(0.9), marginBottom: 12,
   },
   notesInput: {
-    minHeight: 88, textAlignVertical: "top" as any, fontWeight: "500" as any, fontSize: 14,
+    minHeight: 88, textAlignVertical: "top" as any, fontFamily: fonts.bodyMedium as any, fontSize: 14,
   },
   modalCreateBtn: {
     backgroundColor: G, borderRadius: 16, padding: 16, alignItems: "center",
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
     boxShadow: "0 4px 16px rgba(42,56,37,0.2)", marginTop: 18, marginBottom: 8,
   } as any,
-  modalCreateBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  modalCreateBtnText: { color: "#fff", fontSize: 15, fontFamily: fonts.bodyBold },
   modalCancelBtn: { borderRadius: 16, padding: 14, alignItems: "center" },
-  modalCancelBtnText: { color: "#8A9E82", fontSize: 14, fontWeight: "600" },
+  modalCancelBtnText: { color: "#8A9E82", fontSize: 14, fontFamily: fonts.bodySemi },
 
   // Thumbnail
   thumbWrap: { alignItems: "center", marginBottom: 16, marginTop: 4 },
@@ -1260,7 +1261,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 6,
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.15)",
   },
-  thumbEditBtnText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+  thumbEditBtnText: { color: "#fff", fontSize: 12, fontFamily: fonts.bodyBold },
 
   // Kochbuch-Radio
   cookbookRow: {
@@ -1271,8 +1272,8 @@ const styles = StyleSheet.create({
   cookbookRowActive: {
     backgroundColor: "rgba(122,170,110,0.15)", borderColor: "#7BAA6E",
   },
-  cookbookRowText: { fontSize: 14, color: "#2A3825", fontWeight: "500" },
-  cookbookRowTextActive: { fontWeight: "700" },
+  cookbookRowText: { fontSize: 14, color: "#2A3825", fontFamily: fonts.bodyMedium },
+  cookbookRowTextActive: { fontFamily: fonts.bodyBold },
   radioDot: {
     width: 20, height: 20, borderRadius: 10,
     borderWidth: 1.5, borderColor: "rgba(42,56,37,0.25)",
@@ -1290,7 +1291,7 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   },
-  newCookbookBtnText: { color: "#fff", fontSize: 18, fontWeight: "600" },
+  newCookbookBtnText: { color: "#fff", fontSize: 18, fontFamily: fonts.bodySemi },
 
   // Tags
   customTagRow: { flexDirection: "row", gap: 8, marginBottom: 12 },
@@ -1303,14 +1304,14 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   },
-  customTagBtnText: { color: "#fff", fontSize: 18, fontWeight: "600" },
+  customTagBtnText: { color: "#fff", fontSize: 18, fontFamily: fonts.bodySemi },
   tagGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 8 },
   tagChip: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
     backgroundColor: W(0.5), borderWidth: 0.5, borderColor: W(0.5),
   },
   tagChipActive: { backgroundColor: G, borderColor: "rgba(255,255,255,0.08)" },
-  tagChipText: { fontSize: 13, fontWeight: "600", color: "#5A7A52" },
+  tagChipText: { fontSize: 13, fontFamily: fonts.bodySemi, color: "#5A7A52" },
   tagChipTextActive: { color: "#fff" },
 
   // Image Editor Sub-Modal
@@ -1326,11 +1327,11 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     borderWidth: 0.5, borderColor: W(0.8),
   },
-  zoomBtnText: { fontSize: 22, fontWeight: "700", color: "#2A3825", lineHeight: 24 },
-  zoomLabel: { fontSize: 14, fontWeight: "700", color: "#2A3825", minWidth: 60, textAlign: "center" as any },
+  zoomBtnText: { fontSize: 22, fontFamily: fonts.bodyBold, color: "#2A3825", lineHeight: 24 },
+  zoomLabel: { fontSize: 14, fontFamily: fonts.bodyBold, color: "#2A3825", minWidth: 60, textAlign: "center" as any },
   editorSecondaryBtn: {
     backgroundColor: W(0.5), borderRadius: 14, padding: 12, alignItems: "center",
     borderWidth: 0.5, borderColor: W(0.8), marginBottom: 8,
   },
-  editorSecondaryBtnText: { color: "#2A3825", fontSize: 13, fontWeight: "700" },
+  editorSecondaryBtnText: { color: "#2A3825", fontSize: 13, fontFamily: fonts.bodyBold },
 });

@@ -13,6 +13,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { Recipe, ImageTransform } from "../types/recipe";
 import { saveRecipe, updateRecipe, getCookbooks, addCookbook } from "../services/storage";
+import { fonts } from "../constants/theme";
 
 const PICKER_TAGS = [
   "Vegan", "Vegetarisch", "Schnell", "Gesund", "Italienisch",
@@ -347,24 +348,24 @@ const styles = StyleSheet.create({
     width: 36, height: 4, borderRadius: 2, backgroundColor: "rgba(42,56,37,0.15)",
     alignSelf: "center", marginBottom: 16,
   },
-  modalTitle: { fontSize: 22, fontWeight: "800", color: "#2A3825", letterSpacing: -0.5, marginBottom: 18, marginTop: 4 },
+  modalTitle: { fontSize: 22, fontFamily: fonts.bodyExtraBold, color: "#2A3825", letterSpacing: -0.5, marginBottom: 18, marginTop: 4 },
   modalSectionTitle: {
-    fontSize: 13, fontWeight: "700", color: "#5A7A52", letterSpacing: 0.3,
+    fontSize: 13, fontFamily: fonts.bodyBold, color: "#5A7A52", letterSpacing: 0.3,
     textTransform: "uppercase" as any, marginBottom: 10, marginTop: 10,
   },
   modalInput: {
-    backgroundColor: W(0.5), borderRadius: 16, padding: 16, fontSize: 16, fontWeight: "600",
+    backgroundColor: W(0.5), borderRadius: 16, padding: 16, fontSize: 16, fontFamily: fonts.bodySemi,
     color: "#2A3825", borderWidth: 0.5, borderColor: W(0.9), marginBottom: 12,
   },
-  notesInput: { minHeight: 88, textAlignVertical: "top" as any, fontWeight: "500" as any, fontSize: 14 },
+  notesInput: { minHeight: 88, textAlignVertical: "top" as any, fontFamily: fonts.bodyMedium as any, fontSize: 14 },
   modalCreateBtn: {
     backgroundColor: G, borderRadius: 16, padding: 16, alignItems: "center",
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
     boxShadow: "0 4px 16px rgba(42,56,37,0.2)", marginTop: 18, marginBottom: 8,
   } as any,
-  modalCreateBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  modalCreateBtnText: { color: "#fff", fontSize: 15, fontFamily: fonts.bodyBold },
   modalCancelBtn: { borderRadius: 16, padding: 14, alignItems: "center" },
-  modalCancelBtnText: { color: "#8A9E82", fontSize: 14, fontWeight: "600" },
+  modalCancelBtnText: { color: "#8A9E82", fontSize: 14, fontFamily: fonts.bodySemi },
 
   errorBox: {
     backgroundColor: "rgba(155,68,68,0.07)", borderRadius: 14, padding: 12, marginBottom: 12,
@@ -386,7 +387,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 6,
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.15)",
   },
-  thumbEditBtnText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+  thumbEditBtnText: { color: "#fff", fontSize: 12, fontFamily: fonts.bodyBold },
 
   cookbookRow: {
     flexDirection: "row", alignItems: "center", gap: 12,
@@ -396,8 +397,8 @@ const styles = StyleSheet.create({
   cookbookRowActive: {
     backgroundColor: "rgba(122,170,110,0.15)", borderColor: "#7BAA6E",
   },
-  cookbookRowText: { fontSize: 14, color: "#2A3825", fontWeight: "500" },
-  cookbookRowTextActive: { fontWeight: "700" },
+  cookbookRowText: { fontSize: 14, color: "#2A3825", fontFamily: fonts.bodyMedium },
+  cookbookRowTextActive: { fontFamily: fonts.bodyBold },
   radioDot: {
     width: 20, height: 20, borderRadius: 10,
     borderWidth: 1.5, borderColor: "rgba(42,56,37,0.25)",
@@ -416,14 +417,14 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     borderWidth: 0.5, borderColor: "rgba(255,255,255,0.08)",
   },
-  customTagBtnText: { color: "#fff", fontSize: 18, fontWeight: "600" },
+  customTagBtnText: { color: "#fff", fontSize: 18, fontFamily: fonts.bodySemi },
   tagGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 8 },
   tagChip: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
     backgroundColor: W(0.5), borderWidth: 0.5, borderColor: W(0.5),
   },
   tagChipActive: { backgroundColor: G, borderColor: "rgba(255,255,255,0.08)" },
-  tagChipText: { fontSize: 13, fontWeight: "600", color: "#5A7A52" },
+  tagChipText: { fontSize: 13, fontFamily: fonts.bodySemi, color: "#5A7A52" },
   tagChipTextActive: { color: "#fff" },
 
   editorHint: { fontSize: 12, color: "#8A9E82", marginBottom: 14, marginTop: -10 },
@@ -438,11 +439,11 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     borderWidth: 0.5, borderColor: W(0.8),
   },
-  zoomBtnText: { fontSize: 22, fontWeight: "700", color: "#2A3825", lineHeight: 24 },
-  zoomLabel: { fontSize: 14, fontWeight: "700", color: "#2A3825", minWidth: 60, textAlign: "center" as any },
+  zoomBtnText: { fontSize: 22, fontFamily: fonts.bodyBold, color: "#2A3825", lineHeight: 24 },
+  zoomLabel: { fontSize: 14, fontFamily: fonts.bodyBold, color: "#2A3825", minWidth: 60, textAlign: "center" as any },
   editorSecondaryBtn: {
     backgroundColor: W(0.5), borderRadius: 14, padding: 12, alignItems: "center",
     borderWidth: 0.5, borderColor: W(0.8), marginBottom: 8,
   },
-  editorSecondaryBtnText: { color: "#2A3825", fontSize: 13, fontWeight: "700" },
+  editorSecondaryBtnText: { color: "#2A3825", fontSize: 13, fontFamily: fonts.bodyBold },
 });
