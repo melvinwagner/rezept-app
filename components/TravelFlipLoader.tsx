@@ -28,22 +28,13 @@ export function TravelFlipLoader({
 
   useEffect(() => {
     const DURATION = 2800;
-    // Hin-und-her statt nur nach rechts raus
     Animated.loop(
-      Animated.sequence([
-        Animated.timing(x, {
-          toValue: 1,
-          duration: DURATION,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(x, {
-          toValue: 0,
-          duration: DURATION,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ])
+      Animated.timing(x, {
+        toValue: 1,
+        duration: DURATION,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
     ).start();
     Animated.loop(
       Animated.sequence([
@@ -73,11 +64,12 @@ export function TravelFlipLoader({
 
   const DOG_W = 44;
   const DOG_H = 34;
-  const maxX = Math.max(0, width - DOG_W);
 
+  // Start außerhalb der linken Box-Kante, Ende außerhalb der rechten Box-Kante.
+  // `overflow: hidden` auf root clippt visuell an der Boxgrenze — Bildschirm bleibt unberührt.
   const translateX = x.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, maxX],
+    outputRange: [-DOG_W, Math.max(width, 200)],
   });
   const translateY = y.interpolate({
     inputRange: [0, 1],
