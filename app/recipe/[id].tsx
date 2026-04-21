@@ -99,6 +99,30 @@ export default function RecipeDetailScreen() {
       setCurrentServings(found.servings);
     }
     setLoading(false);
+
+    // Auto-Upgrade: wenn das Rezept keine Per-Zutat-Nährwerte hat, im Hintergrund nachladen.
+    if (found && (!found.ingredientNutrition || found.ingredientNutrition.length === 0)) {
+      try {
+        const result = await recalculateNutrition(found.ingredients, found.servings);
+        const upgraded: Recipe = {
+          ...found,
+          nutritionPerServing: result.nutritionPerServing,
+          nutritionPer100g: result.nutritionPer100g,
+          micronutrients: result.micronutrients,
+          ingredientNutrition: result.ingredientNutrition,
+          totalRecipe: result.totalRecipe,
+          servings: result.effectiveServings ?? found.servings,
+        };
+        await updateRecipe(upgraded);
+        setRecipe(upgraded);
+        if (result.effectiveServings) {
+          setOriginalServings(result.effectiveServings);
+          setCurrentServings(result.effectiveServings);
+        }
+      } catch {
+        // Auto-Upgrade schweigsam fehlschlagen lassen
+      }
+    }
   };
 
   // Zutatenmengen bleiben absolut — der Slider teilt das fixe Rezept auf N Portionen.
@@ -372,21 +396,26 @@ export default function RecipeDetailScreen() {
             const nutrition = recipe.ingredientNutrition?.find(
               (n) => n.name === ing.name
             );
-            const ingKcal =
-              nutrition && nutrition.kcal != null
-                ? Math.round(nutrition.kcal * scale)
+            // kcal-Beitrag pro Portion = gesamt-kcal der Zutat / aktuelle Portionen
+            const perPortionKcal =
+              nutrition && nutrition.kcal != null && currentServings > 0
+                ? Math.round(nutrition.kcal / currentServings)
                 : null;
             return (
               <View key={i} style={styles.ingredientRow}>
                 <View style={styles.bullet} />
                 <View style={styles.ingredientTextWrap}>
                   <Text style={styles.ingredientText}>{formatIngredient(ing, scale)}</Text>
-                  {ingKcal != null && (
+                  {perPortionKcal != null ? (
                     <Text style={styles.ingredientKcal}>
-                      {ingKcal} kcal
+                      {perPortionKcal} kcal / Portion
                       {nutrition?.source ? ` · ${nutrition.source}` : ""}
                     </Text>
-                  )}
+                  ) : nutrition && nutrition.kcal == null ? (
+                    <Text style={styles.ingredientKcal}>
+                      keine Nährwert-Daten
+                    </Text>
+                  ) : null}
                 </View>
               </View>
             );
