@@ -25,6 +25,7 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as Clipboard from "expo-clipboard";
 import { fonts } from "../../constants/theme";
 import { TravelFlipLoader } from "../../components/TravelFlipLoader";
+import { RecentRecipes } from "../../components/RecentRecipes";
 import { generateRecipe, setApiKey, getApiKey, recalculateNutrition } from "../../services/api";
 import { saveRecipe, getCookbooks, addCookbook } from "../../services/storage";
 import { Recipe, Ingredient, Macros, ImageTransform } from "../../types/recipe";
@@ -518,9 +519,7 @@ export default function HomeScreen() {
 
             <WidgetSlider />
 
-            <View style={styles.adPlaceholderLarge}>
-              <Text style={styles.adLabel}>Werbung</Text>
-            </View>
+            <RecentRecipes />
           </>
         )}
 
