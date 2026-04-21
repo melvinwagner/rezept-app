@@ -28,13 +28,22 @@ export function TravelFlipLoader({
 
   useEffect(() => {
     const DURATION = 2800;
+    // Hin-und-her statt nur nach rechts raus
     Animated.loop(
-      Animated.timing(x, {
-        toValue: 1,
-        duration: DURATION,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
+      Animated.sequence([
+        Animated.timing(x, {
+          toValue: 1,
+          duration: DURATION,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(x, {
+          toValue: 0,
+          duration: DURATION,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
     ).start();
     Animated.loop(
       Animated.sequence([
@@ -64,10 +73,11 @@ export function TravelFlipLoader({
 
   const DOG_W = 44;
   const DOG_H = 34;
+  const maxX = Math.max(0, width - DOG_W);
 
   const translateX = x.interpolate({
     inputRange: [0, 1],
-    outputRange: [-DOG_W - 10, Math.max(width, 200) + 10],
+    outputRange: [0, maxX],
   });
   const translateY = y.interpolate({
     inputRange: [0, 1],
@@ -103,6 +113,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "transparent",
+    overflow: "hidden",
   },
   label: {
     fontFamily: fonts.eyebrowCaps,
