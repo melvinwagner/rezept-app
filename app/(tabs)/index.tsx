@@ -105,7 +105,7 @@ function GemueseDesTages() {
         <Text style={styles.gemueseLabel}>— Zutat der Woche —</Text>
       </View>
       <Image source={g.img} style={styles.gemueseImage} resizeMode="cover" />
-      <Text style={styles.gemuese_name}>{g.name}</Text>
+      <Text style={styles.gemuese_name} numberOfLines={2}>{g.name}</Text>
       <Text style={styles.gemueseText}>{g.text}</Text>
       <Pressable
         style={styles.gemueseBtn}
@@ -537,7 +537,7 @@ export default function HomeScreen() {
                 )}
               </View>
               <View style={styles.recipeHeaderText}>
-                <Text style={styles.recipeTitle}>{recipe.title}</Text>
+                <Text style={styles.recipeTitle} numberOfLines={2} ellipsizeMode="tail">{recipe.title}</Text>
                 <Text style={styles.recipeDesc}>{recipe.description}</Text>
               </View>
             </View>

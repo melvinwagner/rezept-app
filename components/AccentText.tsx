@@ -25,12 +25,14 @@ export function AccentText({
   onDark = false,
   style,
   accentStyle,
+  numberOfLines = 2,
 }: {
   children: string;
   words?: number;
   onDark?: boolean;
   style?: StyleProp<TextStyle>;
   accentStyle?: StyleProp<TextStyle>;
+  numberOfLines?: number;
 }) {
   const accentColor = onDark ? colors.accentLuminous : colors.accentInk;
 
@@ -39,7 +41,7 @@ export function AccentText({
   const tail = parts.slice(-words).join(" ");
 
   return (
-    <Text style={style}>
+    <Text style={style} numberOfLines={numberOfLines} ellipsizeMode="tail">
       {head}
       {head ? " " : ""}
       <Text style={[{ color: accentColor }, accentStyle]}>{tail}</Text>
